@@ -21,21 +21,21 @@ export default function Nav() {
       alignItems: "center",
       justifyContent: "space-between",
       padding: "0 2.5rem",
-      background: scrolled ? "rgba(247,245,241,0.98)" : "rgba(247,245,241,0.96)",
+      background: "rgba(247,245,241,0.96)",
       backdropFilter: "blur(12px)",
       borderBottom: "0.5px solid var(--charcoal)",
-      transition: "background 0.4s ease",
+      transition: "all 0.4s ease",
     }}>
       <Link href="/" style={{
-        fontFamily: "var(--font-serif)",
+        fontFamily: "'Cormorant Garamond', Georgia, serif",
         fontWeight: 300,
         fontSize: "22px",
         letterSpacing: "0.06em",
-        color: "var(--linen)",
+        color: "#1a1814",
         textDecoration: "none",
         lineHeight: 1,
       }}>
-        Sina <em style={{ fontStyle: "italic", color: "var(--driftwood)" }}>Sharifi</em>
+        Sina <em style={{ fontStyle: "italic", color: "#a07850" }}>Sharifi</em>
       </Link>
 
       <div style={{ display: "flex", alignItems: "center", gap: "2.5rem" }}>
@@ -48,45 +48,20 @@ export default function Nav() {
             key={item.label}
             href={item.href}
             style={{
-              fontFamily: "var(--font-sans)",
+              fontFamily: "'Inter', system-ui, sans-serif",
               fontSize: "10px",
               letterSpacing: "0.16em",
               textTransform: "uppercase",
-              color: "var(--ash)",
+              color: "#9a9189",
               fontWeight: 300,
               textDecoration: "none",
             }}
-            onMouseEnter={e => (e.currentTarget.style.color = "var(--driftwood)")}
-            onMouseLeave={e => (e.currentTarget.style.color = "var(--ash)")}
+            onMouseEnter={e => (e.currentTarget.style.color = "#a07850")}
+            onMouseLeave={e => (e.currentTarget.style.color = "#9a9189")}
           >
             {item.label}
           </Link>
         ))}
-        <Link
-          href="/prints"
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontSize: "10px",
-            letterSpacing: "0.16em",
-            textTransform: "uppercase",
-            color: "var(--driftwood)",
-            border: "0.5px solid var(--driftwood)",
-            padding: "8px 18px",
-            borderRadius: "2px",
-            textDecoration: "none",
-            fontWeight: 300,
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = "var(--driftwood)";
-            e.currentTarget.style.color = "var(--obsidian)";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "var(--driftwood)";
-          }}
-        >
-          Shop Prints
-        </Link>
       </div>
     </nav>
   );
