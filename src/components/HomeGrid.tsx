@@ -58,12 +58,11 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
     <>
       <div style={{ height: "var(--nav-height)" }} />
 
-      {/* Tight uniform grid — Malika style */}
+      {/* Masonry waterfall grid */}
       <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-        gap: "2px",
-        padding: "2px",
+        columns: "2 300px",
+        gap: "3px",
+        padding: "3px",
       }}>
         {photos.map((photo) => (
           <div
@@ -73,20 +72,25 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
             onMouseLeave={() => setHovered(null)}
             style={{
               position: "relative",
-              paddingBottom: "100%",
+              breakInside: "avoid",
+              marginBottom: "3px",
               overflow: "hidden",
               cursor: "zoom-in",
               background: "#e8e4de",
+              display: "block",
             }}
           >
             <Image
               src={photo.src}
               alt={photo.title}
-              fill
+              width={800}
+              height={600}
               style={{
-                objectFit: "cover",
+                width: "100%",
+                height: "auto",
+                display: "block",
                 transition: "transform 0.6s ease",
-                transform: hovered === photo.id ? "scale(1.05)" : "scale(1)",
+                transform: hovered === photo.id ? "scale(1.04)" : "scale(1)",
               }}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
@@ -94,23 +98,24 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
             <div style={{
               position: "absolute",
               inset: 0,
-              background: "rgba(10,10,8,0.5)",
+              background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 50%)",
               opacity: hovered === photo.id ? 1 : 0,
               transition: "opacity 0.3s ease",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "1rem",
-              textAlign: "center",
+            }} />
+            <div style={{
+              position: "absolute",
+              bottom: "1rem",
+              left: "1.25rem",
+              opacity: hovered === photo.id ? 1 : 0,
+              transition: "opacity 0.3s ease",
+              transform: hovered === photo.id ? "translateY(0)" : "translateY(6px)",
             }}>
               <p style={{
                 fontFamily: "'Cormorant Garamond', Georgia, serif",
-                fontSize: "18px",
+                fontSize: "17px",
                 fontWeight: 300,
                 color: "#f0ece4",
                 margin: 0,
-                letterSpacing: "0.02em",
               }}>
                 {photo.title}
               </p>
@@ -118,9 +123,9 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
                 <p style={{
                   fontFamily: "'Cormorant Garamond', Georgia, serif",
                   fontStyle: "italic",
-                  fontSize: "13px",
-                  color: "rgba(240,236,228,0.7)",
-                  margin: "4px 0 0",
+                  fontSize: "12px",
+                  color: "rgba(240,236,228,0.75)",
+                  margin: "2px 0 0",
                 }}>
                   {photo.location}
                 </p>
@@ -132,7 +137,7 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
                   letterSpacing: "0.16em",
                   textTransform: "uppercase",
                   color: "#a07850",
-                  margin: "12px 0 0",
+                  margin: "8px 0 0",
                 }}>
                   Available as print
                 </p>
@@ -142,7 +147,7 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
         ))}
       </div>
 
-      {/* Minimal footer */}
+      {/* Footer */}
       <footer style={{
         padding: "2rem 2.5rem",
         borderTop: "0.5px solid var(--charcoal)",
@@ -151,7 +156,7 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
         alignItems: "center",
         flexWrap: "wrap",
         gap: "1rem",
-        marginTop: "2px",
+        marginTop: "3px",
       }}>
         <p style={{
           fontFamily: "'Cormorant Garamond', Georgia, serif",
@@ -162,47 +167,11 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
           Sina <em>Sharifi</em>
         </p>
         <div style={{ display: "flex", gap: "2rem", alignItems: "center" }}>
-          <Link href="/portfolio" style={{
-            fontFamily: "'Inter', system-ui, sans-serif",
-            fontSize: "10px",
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "#9a9189",
-            textDecoration: "none",
-          }}>Portfolio</Link>
-          <Link href="/prints" style={{
-            fontFamily: "'Inter', system-ui, sans-serif",
-            fontSize: "10px",
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "#9a9189",
-            textDecoration: "none",
-          }}>Prints</Link>
-          <Link href="/about" style={{
-            fontFamily: "'Inter', system-ui, sans-serif",
-            fontSize: "10px",
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "#9a9189",
-            textDecoration: "none",
-          }}>About</Link>
-          <a href="mailto:hello@sinasharifi.com" style={{
-            fontFamily: "'Inter', system-ui, sans-serif",
-            fontSize: "10px",
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "#9a9189",
-            textDecoration: "none",
-          }}>Contact</a>
-          <span style={{
-            fontFamily: "'Inter', system-ui, sans-serif",
-            fontSize: "10px",
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "#dedad4",
-          }}>
-            © {new Date().getFullYear()}
-          </span>
+          <Link href="/portfolio" style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189", textDecoration: "none" }}>Portfolio</Link>
+          <Link href="/prints" style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189", textDecoration: "none" }}>Prints</Link>
+          <Link href="/about" style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189", textDecoration: "none" }}>About</Link>
+          <a href="mailto:hello@sinasharifi.com" style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189", textDecoration: "none" }}>Contact</a>
+          <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#dedad4" }}>© {new Date().getFullYear()}</span>
         </div>
       </footer>
 
