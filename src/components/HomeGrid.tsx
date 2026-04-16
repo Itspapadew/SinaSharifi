@@ -16,7 +16,10 @@ type Photo = {
 
 export default function HomeGrid({ photos }: { photos: Photo[] }) {
   const [hovered, setHovered] = useState<string | null>(null);
-  const [lightbox, setLightbox] = useState<Photo | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const prev = () => setLightboxIndex(i => i !== null ? (i - 1 + photos.length) % photos.length : 0);
+  const next = () => setLightboxIndex(i => i !== null ? (i + 1) % photos.length : 0);
 
   if (!photos || photos.length === 0) {
     return (
@@ -58,16 +61,16 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
     <>
       <div style={{ height: "var(--nav-height)" }} />
 
-      {/* Masonry waterfall grid */}
+      {/* Masonry waterfall */}
       <div style={{
         columns: "2 300px",
         gap: "3px",
         padding: "3px",
       }}>
-        {photos.map((photo) => (
+        {photos.map((photo, index) => (
           <div
             key={photo.id}
-            onClick={() => setLightbox(photo)}
+            onClick={() => setLightboxIndex(index)}
             onMouseEnter={() => setHovered(photo.id)}
             onMouseLeave={() => setHovered(null)}
             style={{
@@ -94,7 +97,6 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
               }}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
-            {/* Hover overlay */}
             <div style={{
               position: "absolute",
               inset: 0,
@@ -175,12 +177,16 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
         </div>
       </footer>
 
-      {lightbox && (
+      {lightboxIndex !== null && (
         <Lightbox
-          src={lightbox.src}
-          title={lightbox.title}
-          location={lightbox.location}
-          onClose={() => setLightbox(null)}
+          src={photos[lightboxIndex].src}
+          title={photos[lightboxIndex].title}
+          location={photos[lightboxIndex].location}
+          onClose={() => setLightboxIndex(null)}
+          onPrev={prev}
+          onNext={next}
+          current={lightboxIndex}
+          total={photos.length}
         />
       )}
     </>

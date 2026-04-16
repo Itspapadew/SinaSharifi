@@ -26,11 +26,14 @@ const categories = [
 export default function PortfolioPage({ photos }: { photos: Photo[] }) {
   const [active, setActive] = useState("all");
   const [hovered, setHovered] = useState<string | null>(null);
-  const [lightbox, setLightbox] = useState<Photo | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const filtered = active === "all"
     ? photos
     : photos.filter(p => p.category === active);
+
+  const prev = () => setLightboxIndex(i => i !== null ? (i - 1 + filtered.length) % filtered.length : 0);
+  const next = () => setLightboxIndex(i => i !== null ? (i + 1) % filtered.length : 0);
 
   if (!photos || photos.length === 0) {
     return (
@@ -65,7 +68,7 @@ export default function PortfolioPage({ photos }: { photos: Photo[] }) {
           color: "#9a9189",
           margin: 0,
         }}>
-          {photos.length} photographs
+          {filtered.length} {filtered.length === 1 ? "photograph" : "photographs"}
         </p>
       </div>
 
@@ -102,7 +105,7 @@ export default function PortfolioPage({ photos }: { photos: Photo[] }) {
         ))}
       </div>
 
-      {/* Grid */}
+      {/* Uniform grid */}
       <section style={{ padding: "2rem 2.5rem 4rem", maxWidth: "1400px", margin: "0 auto" }}>
         {filtered.length === 0 ? (
           <p style={{
@@ -117,43 +120,39 @@ export default function PortfolioPage({ photos }: { photos: Photo[] }) {
           </p>
         ) : (
           <div style={{
-            columns: "3 300px",
-            gap: "4px",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: "3px",
           }}>
-            {filtered.map(photo => (
+            {filtered.map((photo, index) => (
               <div
                 key={photo.id}
-                onClick={() => setLightbox(photo)}
+                onClick={() => setLightboxIndex(index)}
                 onMouseEnter={() => setHovered(photo.id)}
                 onMouseLeave={() => setHovered(null)}
                 style={{
                   position: "relative",
-                  breakInside: "avoid",
-                  marginBottom: "4px",
+                  paddingBottom: "100%",
                   overflow: "hidden",
                   cursor: "zoom-in",
                   background: "#e8e4de",
-                  display: "block",
                 }}
               >
                 <Image
                   src={photo.src}
                   alt={photo.title}
-                  width={800}
-                  height={600}
+                  fill
                   style={{
-                    width: "100%",
-                    height: "auto",
-                    display: "block",
+                    objectFit: "cover",
                     transition: "transform 0.6s ease",
-                    transform: hovered === photo.id ? "scale(1.03)" : "scale(1)",
+                    transform: hovered === photo.id ? "scale(1.04)" : "scale(1)",
                   }}
-                  sizes="(max-width: 768px) 100vw, 33vw"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                 />
                 <div style={{
                   position: "absolute",
                   inset: 0,
-                  background: "linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 50%)",
+                  background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 50%)",
                   opacity: hovered === photo.id ? 1 : 0,
                   transition: "opacity 0.3s ease",
                 }} />
@@ -163,6 +162,7 @@ export default function PortfolioPage({ photos }: { photos: Photo[] }) {
                   left: "1.25rem",
                   opacity: hovered === photo.id ? 1 : 0,
                   transition: "opacity 0.3s ease",
+                  transform: hovered === photo.id ? "translateY(0)" : "translateY(6px)",
                 }}>
                   <p style={{
                     fontFamily: "'Cormorant Garamond', Georgia, serif",
@@ -219,12 +219,16 @@ export default function PortfolioPage({ photos }: { photos: Photo[] }) {
         </span>
       </footer>
 
-      {lightbox && (
+      {lightboxIndex !== null && (
         <Lightbox
-          src={lightbox.src}
-          title={lightbox.title}
-          location={lightbox.location}
-          onClose={() => setLightbox(null)}
+          src={filtered[lightboxIndex].src}
+          title={filtered[lightboxIndex].title}
+          location={filtered[lightboxIndex].location}
+          onClose={() => setLightboxIndex(null)}
+          onPrev={prev}
+          onNext={next}
+          current={lightboxIndex}
+          total={filtered.length}
         />
       )}
     </>
