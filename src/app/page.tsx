@@ -1,23 +1,22 @@
 import { client } from '@/sanity/lib/client'
-import { latestStoriesQuery } from '@/sanity/lib/queries'
+import { homePhotosQuery } from '@/sanity/lib/queries'
 import { urlFor } from '@/sanity/lib/image'
-import PortfolioGrid from '@/components/PortfolioGrid'
+import HomeGrid from '@/components/HomeGrid'
 
 export const revalidate = 60
 
 export default async function Home() {
-  const stories = await client.fetch(latestStoriesQuery)
+  const photos = await client.fetch(homePhotosQuery)
 
-  const mapped = stories.map((s: any) => ({
-    id: s._id,
-    title: s.title,
-    location: s.location || '',
-    category: s.category,
-    slug: s.slug?.current,
-    src: urlFor(s.coverImage).width(1800).url(),
-    availableAsPrint: s.availableAsPrint,
-    price: s.price,
+  const mapped = photos.map((p: any) => ({
+    id: p._id,
+    title: p.title,
+    location: p.location || '',
+    category: p.category,
+    src: urlFor(p.image).width(800).height(800).fit('crop').url(),
+    availableAsPrint: p.availableAsPrint,
+    price: p.price,
   }))
 
-  return <PortfolioGrid photos={mapped} />
+  return <HomeGrid photos={mapped} />
 }
