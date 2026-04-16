@@ -2,7 +2,7 @@ import { defineField, defineType } from 'sanity'
 
 export default defineType({
   name: 'story',
-  title: 'Story',
+  title: 'Story / Post',
   type: 'document',
   groups: [
     { name: 'content', title: 'Content' },
@@ -26,9 +26,9 @@ export default defineType({
       validation: Rule => Rule.required(),
     }),
     defineField({
-      name: 'featuredOnHome',
-      title: 'Feature on homepage?',
-      description: 'Turn on to show this on the main page. Turn off to keep it in Portfolio only.',
+      name: 'showOnHome',
+      title: 'Show on main page?',
+      description: 'Turn on to feature this post on the homepage.',
       type: 'boolean',
       group: 'settings',
       initialValue: true,
@@ -44,7 +44,7 @@ export default defineType({
     defineField({
       name: 'images',
       title: 'Photos',
-      description: 'Select multiple photos at once — hold Cmd/Ctrl to select more than one',
+      description: 'Drag and drop multiple photos at once',
       type: 'array',
       group: 'content',
       of: [
@@ -79,7 +79,6 @@ export default defineType({
         ],
         layout: 'radio',
       },
-      validation: Rule => Rule.required(),
     }),
     defineField({
       name: 'location',

@@ -2,7 +2,7 @@ import { defineField, defineType } from 'sanity'
 
 export default defineType({
   name: 'photo',
-  title: 'Photo',
+  title: 'Portfolio Photo',
   type: 'document',
   fields: [
     defineField({
@@ -40,11 +40,9 @@ export default defineType({
       type: 'string',
     }),
     defineField({
-      name: 'story',
-      title: 'Story',
-      description: 'The moment behind this shot',
-      type: 'text',
-      rows: 4,
+      name: 'camera',
+      title: 'Camera & lens',
+      type: 'string',
     }),
     defineField({
       name: 'availableAsPrint',
@@ -58,23 +56,11 @@ export default defineType({
       type: 'number',
     }),
     defineField({
-      name: 'edition',
-      title: 'Edition size',
-      type: 'number',
-    }),
-    defineField({
       name: 'publishedAt',
       title: 'Published at',
       type: 'datetime',
       initialValue: () => new Date().toISOString(),
     }),
-  ],
-  orderings: [
-    {
-      title: 'Latest first',
-      name: 'publishedAtDesc',
-      by: [{ field: 'publishedAt', direction: 'desc' }],
-    },
   ],
   preview: {
     select: {
