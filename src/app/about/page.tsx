@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export const metadata = {
   title: 'About — Sina Sharifi',
@@ -15,29 +16,19 @@ export default function About() {
         gridTemplateColumns: "1fr 1fr",
         minHeight: "70vh",
       }}>
-        {/* Photo placeholder — swap with your portrait */}
+        {/* Portrait */}
         <div style={{
-          background: "#e8e4de",
           position: "relative",
-          minHeight: "500px",
+          minHeight: "600px",
+          overflow: "hidden",
         }}>
-          <div style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}>
-            <p style={{
-              fontFamily: "'Inter', system-ui, sans-serif",
-              fontSize: "10px",
-              letterSpacing: "0.16em",
-              textTransform: "uppercase",
-              color: "#9a9189",
-            }}>
-              Your portrait here
-            </p>
-          </div>
+          <Image
+            src="/about.jpg"
+            alt="Sina Sharifi"
+            fill
+            style={{ objectFit: "cover", objectPosition: "center top" }}
+            priority
+          />
         </div>
 
         {/* Text */}
@@ -106,7 +97,7 @@ export default function About() {
         </div>
       </div>
 
-      {/* Currently */}
+      {/* Stats */}
       <div style={{
         padding: "4rem 2.5rem",
         borderTop: "0.5px solid var(--charcoal)",
