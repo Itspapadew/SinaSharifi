@@ -6,16 +6,29 @@ export default defineType({
   type: 'document',
   fields: [
     defineField({
-      name: 'title',
-      title: 'Title',
-      type: 'string',
-      validation: Rule => Rule.required(),
-    }),
-    defineField({
       name: 'image',
       title: 'Image',
       type: 'image',
       options: { hotspot: true },
+      validation: Rule => Rule.required(),
+    }),
+    defineField({
+      name: 'autoFill',
+      title: 'AI Auto-fill',
+      type: 'string',
+      components: {
+        input: () => {
+          const { AutoFillButton } = require('../../sanity/components/AutoFillButton')
+          return AutoFillButton
+        }
+      },
+      readOnly: true,
+      hidden: false,
+    }),
+    defineField({
+      name: 'title',
+      title: 'Title',
+      type: 'string',
       validation: Rule => Rule.required(),
     }),
     defineField({
