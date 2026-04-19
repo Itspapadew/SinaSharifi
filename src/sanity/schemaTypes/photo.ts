@@ -13,19 +13,6 @@ export default defineType({
       validation: Rule => Rule.required(),
     }),
     defineField({
-      name: 'autoFill',
-      title: 'AI Auto-fill',
-      type: 'string',
-      components: {
-        input: () => {
-          const { AutoFillButton } = require('../../sanity/components/AutoFillButton')
-          return AutoFillButton
-        }
-      },
-      readOnly: true,
-      hidden: false,
-    }),
-    defineField({
       name: 'title',
       title: 'Title',
       type: 'string',
