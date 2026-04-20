@@ -9,7 +9,6 @@ export default function Nav() {
   const { openCart, count } = useCartStore();
 
   useEffect(() => setMounted(true), []);
-
   const cartCount = mounted ? count() : 0;
 
   return (
@@ -68,40 +67,37 @@ export default function Nav() {
             </Link>
           ))}
 
-          {/* Cart button */}
-          <button
-            onClick={openCart}
-            style={{
-              background: "none", border: "0.5px solid var(--charcoal)",
-              padding: "6px 14px", borderRadius: "2px", cursor: "pointer",
-              fontFamily: "'Inter', system-ui, sans-serif",
-              fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase",
-              color: cartCount > 0 ? "#a07850" : "#9a9189",
-              borderColor: cartCount > 0 ? "#a07850" : "var(--charcoal)",
-              display: "flex", alignItems: "center", gap: "6px",
-              transition: "all 0.2s",
-            }}
-          >
-            Cart {cartCount > 0 && <span style={{ background: "#a07850", color: "#f7f5f1", borderRadius: "50%", width: "18px", height: "18px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px" }}>{cartCount}</span>}
+          <button onClick={openCart} style={{
+            background: "none", border: "0.5px solid",
+            borderColor: cartCount > 0 ? "#a07850" : "var(--charcoal)",
+            padding: "6px 14px", borderRadius: "2px", cursor: "pointer",
+            fontFamily: "'Inter', system-ui, sans-serif",
+            fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase",
+            color: cartCount > 0 ? "#a07850" : "#9a9189",
+            display: "flex", alignItems: "center", gap: "6px",
+            transition: "all 0.2s",
+          }}>
+            Cart
+            {cartCount > 0 && (
+              <span style={{
+                background: "#a07850", color: "#f7f5f1", borderRadius: "50%",
+                width: "18px", height: "18px", display: "flex", alignItems: "center",
+                justifyContent: "center", fontSize: "10px",
+              }}>{cartCount}</span>
+            )}
           </button>
         </div>
 
-        {/* Mobile right side */}
+        {/* Mobile right */}
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <button
-            onClick={openCart}
-            style={{
-              background: "none", border: "none", cursor: "pointer",
-              fontFamily: "'Inter', system-ui, sans-serif",
-              fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase",
-              color: cartCount > 0 ? "#a07850" : "#9a9189",
-              display: "flex", alignItems: "center", gap: "6px",
-            }}
-            className="nav-cart-mobile"
-          >
+          <button onClick={openCart} style={{
+            background: "none", border: "none", cursor: "pointer",
+            fontFamily: "'Inter', system-ui, sans-serif",
+            fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase",
+            color: cartCount > 0 ? "#a07850" : "#9a9189",
+          }}>
             {cartCount > 0 ? `Cart (${cartCount})` : "Cart"}
           </button>
-
           <button className="nav-hamburger" onClick={() => setMenuOpen(!menuOpen)}>
             <span style={{ transform: menuOpen ? "rotate(45deg) translate(4px, 4px)" : "none" }} />
             <span style={{ opacity: menuOpen ? 0 : 1 }} />
