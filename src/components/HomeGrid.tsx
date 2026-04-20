@@ -15,7 +15,6 @@ type Photo = {
 };
 
 export default function HomeGrid({ photos }: { photos: Photo[] }) {
-  const [hovered, setHovered] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const prev = () => setLightboxIndex(i => i !== null ? (i - 1 + photos.length) % photos.length : 0);
@@ -24,90 +23,69 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
   if (!photos || photos.length === 0) {
     return (
       <>
+        <style>{`.home-cell img { transition: transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94); }`}</style>
         <div style={{ height: "var(--nav-height)" }} />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh", flexDirection: "column", gap: "1rem" }}>
-          <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "28px", fontWeight: 300, color: "#9a9189", textAlign: "center" }}>
-            The world, witnessed.
-          </p>
-          <a href="/studio" style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.16em", textTransform: "uppercase", color: "#a07850", textDecoration: "none" }}>
-            Add your first photo →
-          </a>
+          <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "28px", fontWeight: 300, color: "#9a9189" }}>The world, witnessed.</p>
         </div>
       </>
     );
   }
 
   const blocks: Photo[][] = [];
-  for (let i = 0; i < photos.length; i += 5) {
-    blocks.push(photos.slice(i, i + 5));
-  }
+  for (let i = 0; i < photos.length; i += 5) blocks.push(photos.slice(i, i + 5));
 
   const Cell = ({ photo, index, style }: { photo: Photo; index: number; style: React.CSSProperties }) => (
     <div
+      className="home-cell"
       onClick={() => setLightboxIndex(index)}
-      onMouseEnter={() => setHovered(photo.id)}
-      onMouseLeave={() => setHovered(null)}
       style={{
         position: "relative",
         overflow: "hidden",
         cursor: "zoom-in",
         background: "#e8e4de",
-        willChange: "transform",
         ...style,
       }}
     >
       <Image
         src={photo.src}
-        alt={photo.title}
+        alt={photo.title || ""}
         fill
-        style={{
-          objectFit: "cover",
-          transition: "transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-          transform: hovered === photo.id ? "scale(1.05)" : "scale(1)",
-          willChange: "transform",
-          backfaceVisibility: "hidden",
-          WebkitBackfaceVisibility: "hidden",
-        }}
+        style={{ objectFit: "cover" }}
         sizes="(max-width: 768px) 100vw, 50vw"
       />
-      <div style={{
-        position: "absolute",
-        inset: 0,
+      <div className="home-cell-overlay" style={{
+        position: "absolute", inset: 0,
         background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%)",
-        opacity: hovered === photo.id ? 1 : 0,
-        transition: "opacity 0.35s ease",
+        opacity: 0, transition: "opacity 0.35s ease",
         pointerEvents: "none",
       }} />
-      <div style={{
-        position: "absolute",
-        bottom: "1.25rem",
-        left: "1.25rem",
-        opacity: hovered === photo.id ? 1 : 0,
-        transition: "opacity 0.35s ease, transform 0.35s ease",
-        transform: hovered === photo.id ? "translateY(0)" : "translateY(8px)",
-        pointerEvents: "none",
+      <div className="home-cell-text" style={{
+        position: "absolute", bottom: "1.25rem", left: "1.25rem",
+        opacity: 0, transition: "opacity 0.35s ease, transform 0.35s ease",
+        transform: "translateY(8px)", pointerEvents: "none",
       }}>
-        {photo.title && (
-          <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "18px", fontWeight: 300, color: "#f0ece4", margin: 0 }}>
-            {photo.title}
-          </p>
-        )}
-        {photo.location && (
-          <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "12px", color: "rgba(240,236,228,0.7)", margin: "3px 0 0" }}>
-            {photo.location}
-          </p>
-        )}
-        {photo.availableAsPrint && (
-          <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "9px", letterSpacing: "0.16em", textTransform: "uppercase", color: "#a07850", margin: "8px 0 0" }}>
-            Available as print
-          </p>
-        )}
+        {photo.title && <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "18px", fontWeight: 300, color: "#f0ece4", margin: 0 }}>{photo.title}</p>}
+        {photo.location && <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "12px", color: "rgba(240,236,228,0.7)", margin: "3px 0 0" }}>{photo.location}</p>}
       </div>
     </div>
   );
 
   return (
     <>
+      <style>{`
+        .home-cell img {
+          transition: transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94);
+          transform: scale(1);
+        }
+        .home-cell:hover img { transform: scale(1.05); }
+        .home-cell:hover .home-cell-overlay { opacity: 1 !important; }
+        .home-cell:hover .home-cell-text {
+          opacity: 1 !important;
+          transform: translateY(0) !important;
+        }
+      `}</style>
+
       <div style={{ height: "var(--nav-height)" }} />
 
       <div style={{ display: "flex", flexDirection: "column", gap: "3px", padding: "3px" }}>
@@ -142,14 +120,9 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
       </div>
 
       <footer style={{
-        padding: "2rem 2.5rem",
-        borderTop: "0.5px solid var(--charcoal)",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: "1rem",
-        marginTop: "3px",
+        padding: "2rem 2.5rem", borderTop: "0.5px solid var(--charcoal)",
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        flexWrap: "wrap", gap: "1rem", marginTop: "3px",
       }}>
         <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "15px", color: "#9a9189", margin: 0 }}>
           Sina <em>Sharifi</em>
