@@ -1,14 +1,7 @@
 "use client";
 import { useState } from "react";
-import { createClient } from "@sanity/client";
 
-const sanityClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: "2024-01-01",
-  useCdn: false,
-  token: process.env.NEXT_PUBLIC_SANITY_WRITE_TOKEN,
-});
+
 
 type PhotoResult = {
   file: File;
@@ -94,25 +87,21 @@ export default function AdminPage() {
     const photo = photos[index];
     setPhotos(prev => prev.map((p, i) => i === index ? { ...p, status: "uploading" } : p));
     try {
-      // Upload directly from browser to Sanity
-      const asset = await sanityClient.assets.upload("image", photo.file, {
-        filename: photo.file.name,
-        contentType: photo.file.type,
+      const base64 = await toBase64Full(photo.file);
+      const res = await fetch("/api/publish-photo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          base64,
+          mimeType: photo.file.type,
+          filename: photo.file.name,
+          title: photo.title,
+          category: photo.category,
+          location: photo.location,
+        }),
       });
-
-      await sanityClient.create({
-        _type: "photo",
-        title: (photo.title || photo.file.name).slice(0, 100),
-        category: photo.category || "landscape",
-        location: (photo.location || "").slice(0, 100),
-        availableAsPrint: false,
-        publishedAt: new Date().toISOString(),
-        image: {
-          _type: "image",
-          asset: { _type: "reference", _ref: asset._id },
-        },
-      });
-
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
       setPhotos(prev => prev.map((p, i) => i === index ? { ...p, status: "published" } : p));
     } catch (e: any) {
       setPhotos(prev => prev.map((p, i) => i === index ? { ...p, status: "error", error: e.message } : p));
