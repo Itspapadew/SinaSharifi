@@ -58,7 +58,7 @@ export default function About() {
             src="/about.jpg"
             alt="Sina Sharifi"
             fill
-            style={{ objectFit: "cover", objectPosition: "center center" }}
+            style={{ objectFit: "contain", objectPosition: "center center", background: "#e8e4de" }}
             priority
           />
         </div>
