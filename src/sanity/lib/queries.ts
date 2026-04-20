@@ -2,7 +2,7 @@ import { groq } from 'next-sanity'
 
 export const homePhotosQuery = groq`
 {
-  "photos": *[_type == "photo"] | order(publishedAt desc) [0...50] {
+  "photos": *[_type == "photo"] | order(publishedAt desc) [0...20] {
     _id,
     _type,
     title,
@@ -13,7 +13,7 @@ export const homePhotosQuery = groq`
     publishedAt,
     "src": image.asset->url,
   },
-  "quickUploads": *[_type == "quickUpload"] | order(publishedAt desc) [0...50] {
+  "quickUploads": *[_type == "quickUpload"] | order(publishedAt desc) [0...20] {
     _id,
     _type,
     location,

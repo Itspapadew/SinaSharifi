@@ -1,13 +1,13 @@
 import { client } from '@/sanity/lib/client'
 import { homePhotosQuery } from '@/sanity/lib/queries'
 import HomeGrid from '@/components/HomeGrid'
+import WorldMap from '@/components/WorldMap'
 
 export const revalidate = 60
 
 export default async function Home() {
   const { photos, quickUploads } = await client.fetch(homePhotosQuery)
 
-  // Merge and flatten all images into one array sorted by date
   const allPhotos: any[] = []
 
   for (const p of photos || []) {
@@ -37,8 +37,14 @@ export default async function Home() {
     }
   }
 
-  // Sort by date newest first
   allPhotos.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
 
-  return <HomeGrid photos={allPhotos} />
+  const limited = allPhotos.slice(0, 20)
+
+  return (
+    <>
+      <HomeGrid photos={limited} />
+      <WorldMap />
+    </>
+  )
 }
