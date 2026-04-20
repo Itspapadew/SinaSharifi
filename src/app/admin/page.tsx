@@ -209,7 +209,7 @@ export default function AdminPage() {
 
                 {photo.status === "done" && (
                   
-                    href="/studio/structure/photo;__new__"
+<a href="/studio/structure/photo;__new__"
                     target="_blank"
                     style={{
                       display: "block", marginTop: "8px", textAlign: "center",
