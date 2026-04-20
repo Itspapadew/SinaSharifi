@@ -1,10 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
-type Country = {
-  name: string;
-  slug: string;
-};
+type Country = { name: string; slug: string; };
 
 const VISITED: Record<string, Country> = {
   "300": { name: "Greece", slug: "greece" },
@@ -23,12 +20,23 @@ export default function WorldMap() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const load = async () => {
-      const [d3, topojson, world] = await Promise.all([
-        import('https://cdn.jsdelivr.net/npm/d3@7/+esm' as any),
-        import('https://cdn.jsdelivr.net/npm/topojson-client@3/+esm' as any),
-        fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r => r.json()),
-      ]);
+    const loadScript = (src: string) => new Promise<void>((resolve, reject) => {
+      if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = () => resolve();
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+
+    const init = async () => {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js');
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js');
+
+      const d3 = (window as any).d3;
+      const topojson = (window as any).topojson;
+
+      const world = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r => r.json());
 
       const svg = d3.select(svgRef.current);
       const projection = d3.geoNaturalEarth1().scale(153).translate([480, 230]);
@@ -39,10 +47,7 @@ export default function WorldMap() {
         .data(countries.features)
         .join('path')
         .attr('d', path)
-        .attr('fill', (d: any) => {
-          const id = String(d.id).padStart(3, '0');
-          return VISITED[id] ? '#a07850' : '#2a2520';
-        })
+        .attr('fill', (d: any) => VISITED[String(d.id).padStart(3, '0')] ? '#a07850' : '#2a2520')
         .attr('stroke', '#1a1814')
         .attr('stroke-width', 0.5)
         .style('cursor', (d: any) => VISITED[String(d.id).padStart(3, '0')] ? 'pointer' : 'default')
@@ -62,35 +67,21 @@ export default function WorldMap() {
       setLoaded(true);
     };
 
-    load().catch(console.error);
+    init().catch(console.error);
   }, []);
 
   const linkStyle: React.CSSProperties = {
-    background: "none",
-    border: "0.5px solid #a07850",
-    color: "#a07850",
-    padding: "10px 24px",
-    fontFamily: "'Inter', system-ui, sans-serif",
-    fontSize: "10px",
-    letterSpacing: "0.14em",
-    textTransform: "uppercase",
-    cursor: "pointer",
-    borderRadius: "2px",
-    textDecoration: "none",
-    display: "inline-block",
+    background: "none", border: "0.5px solid #a07850", color: "#a07850",
+    padding: "10px 24px", fontFamily: "'Inter', system-ui, sans-serif",
+    fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase",
+    cursor: "pointer", borderRadius: "2px", textDecoration: "none", display: "inline-block",
   };
 
   const closeStyle: React.CSSProperties = {
-    background: "none",
-    border: "0.5px solid #2a2520",
-    color: "#6b6256",
-    padding: "10px 20px",
-    fontFamily: "'Inter', system-ui, sans-serif",
-    fontSize: "10px",
-    letterSpacing: "0.14em",
-    textTransform: "uppercase",
-    cursor: "pointer",
-    borderRadius: "2px",
+    background: "none", border: "0.5px solid #2a2520", color: "#6b6256",
+    padding: "10px 20px", fontFamily: "'Inter', system-ui, sans-serif",
+    fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase",
+    cursor: "pointer", borderRadius: "2px",
   };
 
   return (
@@ -109,7 +100,12 @@ export default function WorldMap() {
         </p>
       </div>
 
-      <div style={{ padding: "0 1rem" }}>
+      <div style={{ padding: "0 1rem", minHeight: "300px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {!loaded && (
+          <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#2a2520" }}>
+            Loading map...
+          </p>
+        )}
         <svg
           ref={svgRef}
           viewBox="0 0 960 460"
@@ -139,12 +135,8 @@ export default function WorldMap() {
             </p>
           </div>
           <div style={{ display: "flex", gap: "12px" }}>
-            <button onClick={() => setSelected(null)} style={closeStyle}>
-              Close
-            </button>
-            <a href={"/portfolio?country=" + selected.slug} style={linkStyle}>
-              View gallery
-            </a>
+            <button onClick={() => setSelected(null)} style={closeStyle}>Close</button>
+            <a href={"/portfolio?country=" + selected.slug} style={linkStyle}>View gallery</a>
           </div>
         </div>
       )}
