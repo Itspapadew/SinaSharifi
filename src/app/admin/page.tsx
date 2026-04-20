@@ -117,7 +117,7 @@ export default function AdminPage() {
                 display: "inline-block",
               }}
             >
-              Open Studio →
+              Open Studio &rarr;
             </a>
           </div>
         </div>
