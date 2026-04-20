@@ -1,11 +1,20 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
+import { useCartStore } from "@/store/cartStore";
 
-type Size = {
+type PrintSize = {
   label: string;
+  inches: string;
+  sku: string;
   price: number;
-  priceId: string;
+};
+
+type PaperOption = {
+  id: string;
+  label: string;
+  description: string;
+  priceMultiplier: number;
 };
 
 type Print = {
@@ -13,175 +22,193 @@ type Print = {
   title: string;
   location: string;
   category: string;
-  story: string;
   image: string;
-  sizes: Size[];
+  basePrice: number;
   edition: number;
-  sold: number;
 };
 
+const SIZES: PrintSize[] = [
+  { label: 'Small', inches: '12×16"', sku: 'GLOBAL-FAP-12x16', price: 120 },
+  { label: 'Medium', inches: '16×24"', sku: 'GLOBAL-FAP-16x24', price: 200 },
+  { label: 'Large', inches: '24×36"', sku: 'GLOBAL-FAP-24x36', price: 320 },
+  { label: 'XL', inches: '30×40"', sku: 'GLOBAL-FAP-30x40', price: 480 },
+];
+
+const PAPERS: PaperOption[] = [
+  {
+    id: 'enhanced-matte',
+    label: 'Enhanced Matte',
+    description: '200gsm archival matte paper. Sharp detail, no glare. Ships flat or rolled.',
+    priceMultiplier: 1,
+  },
+  {
+    id: 'hahnemuhle',
+    label: 'Hahnemühle Fine Art',
+    description: 'Museum-grade 310gsm cotton rag. Used by galleries worldwide. 100+ year archival.',
+    priceMultiplier: 1.6,
+  },
+];
+
 export default function PrintsClient({ prints }: { prints: Print[] }) {
-  const [selected, setSelected] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<Record<string, number>>({});
+  const [selectedPaper, setSelectedPaper] = useState<Record<string, string>>({});
+  const [added, setAdded] = useState<Record<string, boolean>>({});
+  const { addItem, openCart } = useCartStore();
 
-  const getSize = (printId: string, sizes: Size[]) => {
-    return sizes[selected[printId] ?? 0];
+  const getSize = (printId: string) => SIZES[selectedSize[printId] ?? 0];
+  const getPaper = (printId: string) => PAPERS.find(p => p.id === (selectedPaper[printId] ?? 'enhanced-matte')) || PAPERS[0];
+  const getPrice = (printId: string) => Math.round(getSize(printId).price * getPaper(printId).priceMultiplier);
+
+  const handleAddToCart = (print: Print) => {
+    const size = getSize(print.id);
+    const paper = getPaper(print.id);
+    const price = getPrice(print.id);
+    const sku = size.sku.replace('FAP', paper.id === 'hahnemuhle' ? 'HFAP' : 'FAP');
+
+    addItem({
+      id: `${print.id}-${size.sku}-${paper.id}`,
+      photoId: print.id,
+      title: print.title,
+      imageUrl: print.image,
+      size: size.inches,
+      paper: paper.label,
+      sku,
+      price,
+    });
+
+    setAdded(prev => ({ ...prev, [print.id]: true }));
+    setTimeout(() => setAdded(prev => ({ ...prev, [print.id]: false })), 2000);
   };
 
-  const handleBuy = async (print: Print) => {
-    const size = getSize(print.id, print.sizes);
-    setLoading(print.id);
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: print.title,
-          size: size.label,
-          price: size.price,
-          image: print.image,
-        }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(null);
-    }
-  };
+  if (!prints || prints.length === 0) {
+    return (
+      <div style={{ padding: "6rem 2.5rem", textAlign: "center" }}>
+        <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "24px", color: "#9a9189" }}>
+          No prints available yet. Check back soon.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
-      {prints.map((print) => {
-        const remaining = print.edition - print.sold;
-        const currentSize = getSize(print.id, print.sizes);
-        const isLoading = loading === print.id;
+    <div>
+      {prints.map((print, index) => (
+        <div key={print.id} style={{
+          display: "grid",
+          gridTemplateColumns: index % 2 === 0 ? "1fr 1fr" : "1fr 1fr",
+          borderBottom: "0.5px solid var(--charcoal)",
+        }}>
+          {/* Image — alternates left/right */}
+          <div style={{
+            position: "relative", minHeight: "600px", background: "#e8e4de",
+            order: index % 2 === 0 ? 0 : 1,
+          }}>
+            <Image src={print.image} alt={print.title} fill style={{ objectFit: "cover" }} sizes="50vw" />
+          </div>
 
-        return (
-          <div
-            key={print.id}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              borderBottom: "0.5px solid var(--charcoal)",
-            }}
-          >
-            {/* Image */}
-            <div style={{ position: "relative", minHeight: "500px", background: "#e8e4de", overflow: "hidden" }}>
-              <Image
-                src={print.image}
-                alt={print.title}
-                fill
-                style={{ objectFit: "cover" }}
-                sizes="50vw"
-              />
+          {/* Details */}
+          <div style={{
+            padding: "4rem 3.5rem",
+            borderLeft: index % 2 === 0 ? "0.5px solid var(--charcoal)" : "none",
+            borderRight: index % 2 !== 0 ? "0.5px solid var(--charcoal)" : "none",
+            display: "flex", flexDirection: "column", justifyContent: "center",
+            order: index % 2 === 0 ? 1 : 0,
+          }}>
+            <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 1rem" }}>
+              {print.category}{print.location && ` · ${print.location}`}
+            </p>
+
+            <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "clamp(28px, 3vw, 48px)", fontWeight: 300, color: "#1a1814", lineHeight: 1.1, margin: "0 0 2rem" }}>
+              {print.title}
+            </h2>
+
+            <div style={{ width: "40px", height: "0.5px", background: "var(--charcoal)", margin: "0 0 2rem" }} />
+
+            {/* Edition */}
+            <div style={{ marginBottom: "2.5rem" }}>
+              <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 4px" }}>Edition</p>
+              <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "18px", color: "#1a1814", margin: 0 }}>
+                Limited to {print.edition} prints · Signed & numbered
+              </p>
             </div>
 
-            {/* Details */}
-            <div style={{ padding: "4rem 3rem", borderLeft: "0.5px solid var(--charcoal)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 1rem" }}>
-                {print.category} · {print.location}
-              </p>
-
-              <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "clamp(28px, 3vw, 44px)", fontWeight: 300, color: "#1a1814", lineHeight: 1.1, margin: "0 0 1.5rem" }}>
-                {print.title}
-              </h2>
-
-              <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "18px", color: "#6b6256", lineHeight: 1.7, margin: "0 0 2rem", maxWidth: "440px" }}>
-                "{print.story}"
-              </p>
-
-              <div style={{ width: "40px", height: "0.5px", background: "var(--charcoal)", margin: "0 0 2rem" }} />
-
-              {/* Edition info */}
-              <div style={{ display: "flex", gap: "2rem", marginBottom: "2rem" }}>
-                <div>
-                  <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 4px" }}>Edition</p>
-                  <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "18px", color: "#1a1814", margin: 0 }}>{print.edition} prints</p>
-                </div>
-                <div>
-                  <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 4px" }}>Remaining</p>
-                  <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "18px", color: remaining <= 5 ? "#c97a5a" : "#1a1814", margin: 0 }}>
-                    {remaining} of {print.edition}
-                  </p>
-                </div>
-              </div>
-
-              {/* Size selector */}
-              <div style={{ marginBottom: "2rem" }}>
-                <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 12px" }}>Select size</p>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  {print.sizes.map((size, i) => (
-                    <button
-                      key={size.label}
-                      onClick={() => setSelected(prev => ({ ...prev, [print.id]: i }))}
-                      style={{
-                        fontFamily: "'Inter', system-ui, sans-serif",
-                        fontSize: "12px",
-                        letterSpacing: "0.08em",
-                        padding: "10px 20px",
-                        border: "0.5px solid",
-                        borderColor: (selected[print.id] ?? 0) === i ? "#a07850" : "var(--charcoal)",
-                        color: (selected[print.id] ?? 0) === i ? "#a07850" : "#6b6256",
-                        background: (selected[print.id] ?? 0) === i ? "rgba(160,120,80,0.06)" : "transparent",
-                        borderRadius: "2px",
-                        cursor: "pointer",
-                        transition: "all 0.2s",
-                      }}
-                    >
-                      {size.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price + Buy */}
-              <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-                <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "36px", color: "#a07850", fontWeight: 300, margin: 0 }}>
-                  ${currentSize.price}
-                </p>
-                <button
-                  onClick={() => handleBuy(print)}
-                  disabled={isLoading}
-                  style={{
-                    fontFamily: "'Inter', system-ui, sans-serif",
-                    fontSize: "11px",
-                    letterSpacing: "0.16em",
-                    textTransform: "uppercase",
-                    color: "#f7f5f1",
-                    background: isLoading ? "#9a9189" : "#1a1814",
-                    border: "none",
-                    padding: "14px 32px",
-                    borderRadius: "2px",
-                    cursor: isLoading ? "not-allowed" : "pointer",
-                    transition: "all 0.2s",
-                    flex: 1,
-                    maxWidth: "200px",
-                  }}
-                >
-                  {isLoading ? "Loading..." : "Buy Print"}
-                </button>
-              </div>
-
-              {/* Print details */}
-              <div style={{ marginTop: "2rem", paddingTop: "2rem", borderTop: "0.5px solid var(--charcoal)" }}>
-                {[
-                  ["Paper", "Hahnemühle Photo Rag 308gsm"],
-                  ["Inks", "Archival pigment, 200+ year fade resistance"],
-                  ["Certificate", "Signed & numbered, included"],
-                  ["Shipping", "5–10 business days worldwide"],
-                ].map(([label, value]) => (
-                  <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "0.5px solid var(--charcoal)" }}>
-                    <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189" }}>{label}</span>
-                    <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "12px", color: "#6b6256", textAlign: "right", maxWidth: "60%" }}>{value}</span>
-                  </div>
+            {/* Size selector */}
+            <div style={{ marginBottom: "2rem" }}>
+              <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 12px" }}>Size</p>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {SIZES.map((size, i) => (
+                  <button key={size.label} onClick={() => setSelectedSize(prev => ({ ...prev, [print.id]: i }))}
+                    style={{
+                      fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px",
+                      padding: "8px 16px", border: "0.5px solid",
+                      borderColor: (selectedSize[print.id] ?? 0) === i ? "#a07850" : "var(--charcoal)",
+                      color: (selectedSize[print.id] ?? 0) === i ? "#a07850" : "#6b6256",
+                      background: (selectedSize[print.id] ?? 0) === i ? "rgba(160,120,80,0.06)" : "transparent",
+                      borderRadius: "2px", cursor: "pointer", transition: "all 0.2s",
+                    }}>
+                    {size.inches}
+                  </button>
                 ))}
               </div>
             </div>
+
+            {/* Paper selector */}
+            <div style={{ marginBottom: "2.5rem" }}>
+              <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 12px" }}>Paper</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {PAPERS.map(paper => (
+                  <button key={paper.id} onClick={() => setSelectedPaper(prev => ({ ...prev, [print.id]: paper.id }))}
+                    style={{
+                      padding: "12px 16px", border: "0.5px solid", textAlign: "left",
+                      borderColor: (selectedPaper[print.id] ?? 'enhanced-matte') === paper.id ? "#a07850" : "var(--charcoal)",
+                      background: (selectedPaper[print.id] ?? 'enhanced-matte') === paper.id ? "rgba(160,120,80,0.06)" : "transparent",
+                      borderRadius: "2px", cursor: "pointer", transition: "all 0.2s",
+                    }}>
+                    <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: (selectedPaper[print.id] ?? 'enhanced-matte') === paper.id ? "#a07850" : "#1a1814", margin: "0 0 4px" }}>
+                      {paper.label}
+                    </p>
+                    <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", color: "#9a9189", margin: 0, lineHeight: 1.5 }}>
+                      {paper.description}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Price + Add to cart */}
+            <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+              <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "40px", color: "#a07850", fontWeight: 300, margin: 0 }}>
+                ${getPrice(print.id)}
+              </p>
+              <button onClick={() => handleAddToCart(print)}
+                style={{
+                  flex: 1, maxWidth: "220px", padding: "14px 24px",
+                  fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px",
+                  letterSpacing: "0.16em", textTransform: "uppercase",
+                  color: "#f7f5f1", background: added[print.id] ? "#a07850" : "#1a1814",
+                  border: "none", borderRadius: "2px", cursor: "pointer", transition: "all 0.3s",
+                }}>
+                {added[print.id] ? "✓ Added to cart" : "Add to cart"}
+              </button>
+            </div>
+
+            {/* Print specs */}
+            <div style={{ marginTop: "2rem", paddingTop: "2rem", borderTop: "0.5px solid var(--charcoal)" }}>
+              {[
+                ["Printing", "Giclée — museum quality"],
+                ["Inks", "Archival pigment, 100-200 year fade resistance"],
+                ["Finishing", "Signed & numbered certificate of authenticity"],
+                ["Shipping", "Shipped worldwide from nearest print lab"],
+              ].map(([label, value]) => (
+                <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "0.5px solid var(--charcoal)" }}>
+                  <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189" }}>{label}</span>
+                  <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", color: "#6b6256", textAlign: "right", maxWidth: "55%" }}>{value}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 }

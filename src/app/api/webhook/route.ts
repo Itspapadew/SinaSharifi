@@ -11,11 +11,7 @@ export async function POST(req: NextRequest) {
 
   let event
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    )
+    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
   } catch (err: any) {
     return NextResponse.json({ error: `Webhook error: ${err.message}` }, { status: 400 })
   }
@@ -23,53 +19,49 @@ export async function POST(req: NextRequest) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as any
     const shipping = session.shipping_details
-    const metadata = session.metadata
+    const items = JSON.parse(session.metadata?.items || '[]')
 
     try {
-      const response = await fetch('https://api.printful.com/orders', {
+      const order = await fetch('https://api.prodigi.com/v4.0/orders', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.PRINTFUL_API_KEY}`,
+          'X-API-Key': process.env.PRODIGI_API_KEY!,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          merchantReference: session.id,
+          shippingMethod: 'Standard',
           recipient: {
-            name: shipping?.name || 'Customer',
-            address1: shipping?.address?.line1,
-            address2: shipping?.address?.line2,
-            city: shipping?.address?.city,
-            state_code: shipping?.address?.state,
-            country_code: shipping?.address?.country,
-            zip: shipping?.address?.postal_code,
+            name: shipping?.name || session.customer_details?.name || 'Customer',
             email: session.customer_details?.email,
+            address: {
+              line1: shipping?.address?.line1,
+              line2: shipping?.address?.line2 || '',
+              postalOrZipCode: shipping?.address?.postal_code,
+              countryCode: shipping?.address?.country,
+              townOrCity: shipping?.address?.city,
+              stateOrCounty: shipping?.address?.state || '',
+            },
           },
-          items: [
-            {
-              variant_id: 1,
-              quantity: 1,
-              name: session.metadata?.title || 'Fine Art Print',
-              retail_price: (session.amount_total / 100).toFixed(2),
-              files: [
-                {
-                  url: session.metadata?.imageUrl || '',
-                  type: 'default',
-                }
-              ]
-            }
-          ],
-          retail_costs: {
-            subtotal: (session.amount_total / 100).toFixed(2),
-            shipping: '0.00',
-            tax: '0.00',
-            total: (session.amount_total / 100).toFixed(2),
-          }
+          items: items.map((item: any) => ({
+            merchantReference: item.sku,
+            sku: item.sku,
+            copies: item.quantity,
+            sizing: 'fillPrintArea',
+            assets: [
+              {
+                printArea: 'default',
+                url: item.imageUrl,
+              }
+            ],
+          })),
         }),
       })
 
-      const data = await response.json()
-      console.log('Printful order created:', data)
+      const data = await order.json()
+      console.log('Prodigi order created:', data)
     } catch (err) {
-      console.error('Printful error:', err)
+      console.error('Prodigi error:', err)
     }
   }
 
