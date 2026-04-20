@@ -28,10 +28,10 @@ type Print = {
 };
 
 const SIZES: PrintSize[] = [
-  { label: 'Small', inches: '12×16"', sku: 'GLOBAL-FAP-12x16', price: 120 },
+  { label: 'Small', inches: '12×18"', sku: 'GLOBAL-FAP-12x18', price: 120 },
   { label: 'Medium', inches: '16×24"', sku: 'GLOBAL-FAP-16x24', price: 200 },
   { label: 'Large', inches: '24×36"', sku: 'GLOBAL-FAP-24x36', price: 320 },
-  { label: 'XL', inches: '30×40"', sku: 'GLOBAL-FAP-30x40', price: 480 },
+  { label: 'Large', inches: '24×36"', sku: 'GLOBAL-FAP-24x36', price: 480 },
 ];
 
 const PAPERS: PaperOption[] = [
