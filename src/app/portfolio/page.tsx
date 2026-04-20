@@ -1,6 +1,5 @@
 import { client } from '@/sanity/lib/client'
 import { portfolioPhotosQuery } from '@/sanity/lib/queries'
-import { urlFor } from '@/sanity/lib/image'
 import PortfolioPage from '@/components/PortfolioPage'
 
 export const revalidate = 60
@@ -10,11 +9,11 @@ export default async function Portfolio() {
 
   const mapped = photos.map((p: any) => ({
     id: p._id,
-    title: p.title,
+    title: p.title || '',
     location: p.location || '',
-    category: p.category,
-    src: urlFor(p.image).width(1200).url(),
-    availableAsPrint: p.availableAsPrint,
+    category: p.category || '',
+    src: `${p.src}?w=800&fit=max`,
+    availableAsPrint: p.availableAsPrint || false,
     price: p.price,
   }))
 
