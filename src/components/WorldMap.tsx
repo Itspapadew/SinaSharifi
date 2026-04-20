@@ -144,10 +144,7 @@ export default function WorldMap() {
             </button>
             
               href={`/portfolio?country=${selected.slug}`}
-              style={{ background: "none", border: "0.5px solid #a07850", color: "#a07850", padding: "10px 24px", fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", cursor: "pointer", borderRadius: "2px", textDecoration: "none" }}
-            >
-              View gallery
-            </a>
+  style={{ background: "none", border: "0.5px solid #a07850", color: "#a07850", padding: "10px 24px", fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", cursor: "pointer", borderRadius: "2px", textDecoration: "none" }}>View Gallery</a>
           </div>
         </div>
       )}
