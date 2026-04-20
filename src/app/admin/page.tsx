@@ -1,5 +1,14 @@
 "use client";
 import { useState } from "react";
+import { createClient } from "@sanity/client";
+
+const sanityClient = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
+  apiVersion: "2024-01-01",
+  useCdn: false,
+  token: process.env.NEXT_PUBLIC_SANITY_WRITE_TOKEN,
+});
 
 type PhotoResult = {
   file: File;
@@ -35,32 +44,19 @@ export default function AdminPage() {
       const url = URL.createObjectURL(file);
       img.onload = () => {
         const maxSize = 1200;
-        let w = img.width;
-        let h = img.height;
+        let w = img.width, h = img.height;
         if (w > maxSize || h > maxSize) {
           if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
           else { w = Math.round(w * maxSize / h); h = maxSize; }
         }
         const canvas = document.createElement("canvas");
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext("2d")!;
-        ctx.drawImage(img, 0, 0, w, h);
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
         URL.revokeObjectURL(url);
-        const base64 = canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
-        resolve(base64);
+        resolve(canvas.toDataURL("image/jpeg", 0.85).split(",")[1]);
       };
       img.onerror = reject;
       img.src = url;
-    });
-  };
-
-  const toBase64Full = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve((reader.result as string).split(",")[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
     });
   };
 
@@ -77,9 +73,7 @@ export default function AdminPage() {
       if (data.error) throw new Error(data.error);
       setPhotos(prev => prev.map((p, i) => i === index ? {
         ...p, status: "done",
-        title: data.title,
-        category: data.category,
-        location: data.location || "",
+        title: data.title, category: data.category, location: data.location || "",
       } : p));
     } catch (e: any) {
       setPhotos(prev => prev.map((p, i) => i === index ? { ...p, status: "error", error: e.message } : p));
@@ -87,8 +81,8 @@ export default function AdminPage() {
   };
 
   const analyseAll = async () => {
-    const pending = photos.map((p, i) => ({ p, i })).filter(({ p }) => p.status === "pending");
-    setPhotos(prev => prev.map((p) => p.status === "pending" ? { ...p, status: "analysing" } : p));
+    const pending = photos.map((p, i) => ({ p, i })).filter(({ p }) => p.status === "pending" || p.status === "error");
+    setPhotos(prev => prev.map(p => p.status === "pending" ? { ...p, status: "analysing" } : p));
     await Promise.all(pending.map(({ i }) => analyseOne(i)));
   };
 
@@ -100,21 +94,25 @@ export default function AdminPage() {
     const photo = photos[index];
     setPhotos(prev => prev.map((p, i) => i === index ? { ...p, status: "uploading" } : p));
     try {
-      const base64 = await toBase64Full(photo.file);
-      const res = await fetch("/api/publish-photo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          base64,
-          mimeType: photo.file.type,
-          filename: photo.file.name,
-          title: photo.title,
-          category: photo.category,
-          location: photo.location,
-        }),
+      // Upload directly from browser to Sanity
+      const asset = await sanityClient.assets.upload("image", photo.file, {
+        filename: photo.file.name,
+        contentType: photo.file.type,
       });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
+
+      await sanityClient.create({
+        _type: "photo",
+        title: (photo.title || photo.file.name).slice(0, 100),
+        category: photo.category || "landscape",
+        location: (photo.location || "").slice(0, 100),
+        availableAsPrint: false,
+        publishedAt: new Date().toISOString(),
+        image: {
+          _type: "image",
+          asset: { _type: "reference", _ref: asset._id },
+        },
+      });
+
       setPhotos(prev => prev.map((p, i) => i === index ? { ...p, status: "published" } : p));
     } catch (e: any) {
       setPhotos(prev => prev.map((p, i) => i === index ? { ...p, status: "error", error: e.message } : p));
@@ -133,15 +131,10 @@ export default function AdminPage() {
   return (
     <div style={{ minHeight: "100vh", background: "#f7f5f1", paddingTop: "var(--nav-height)" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "3rem 2rem" }}>
-
         <div style={{ marginBottom: "2rem", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem" }}>
           <div>
-            <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "40px", fontWeight: 300, color: "#1a1814", margin: 0 }}>
-              Upload Photos
-            </h1>
-            <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "13px", color: "#9a9189", marginTop: "0.5rem" }}>
-              Drop your photos, AI fills the details, publish instantly.
-            </p>
+            <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "40px", fontWeight: 300, color: "#1a1814", margin: 0 }}>Upload Photos</h1>
+            <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "13px", color: "#9a9189", marginTop: "0.5rem" }}>Drop your photos, AI fills the details, publish instantly.</p>
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
             {photos.some(p => p.status === "pending" || p.status === "error") && (
@@ -153,7 +146,6 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Drop zone */}
         <div
           onDragOver={e => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
@@ -161,35 +153,26 @@ export default function AdminPage() {
           onClick={() => document.getElementById("file-input")?.click()}
           style={{
             border: `2px dashed ${dragOver ? "#a07850" : "#dedad4"}`,
-            borderRadius: "4px",
-            padding: "3rem",
-            textAlign: "center",
-            cursor: "pointer",
-            marginBottom: "2rem",
-            background: dragOver ? "rgba(160,120,80,0.04)" : "transparent",
-            transition: "all 0.2s",
+            borderRadius: "4px", padding: "3rem", textAlign: "center", cursor: "pointer",
+            marginBottom: "2rem", background: dragOver ? "rgba(160,120,80,0.04)" : "transparent", transition: "all 0.2s",
           }}
         >
-          <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "24px", color: "#9a9189", margin: 0 }}>
-            Drop photos here or click to select
-          </p>
-          <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#dedad4", marginTop: "0.5rem" }}>
-            Select multiple at once · Images are resized for faster AI analysis
-          </p>
-          <input id="file-input" type="file" multiple accept="image/*" style={{ display: "none" }}
-            onChange={e => addFiles(e.target.files)} />
+          <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "24px", color: "#9a9189", margin: 0 }}>Drop photos here or click to select</p>
+          <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#dedad4", marginTop: "0.5rem" }}>Full resolution uploaded · AI analyses a preview</p>
+          <input id="file-input" type="file" multiple accept="image/*" style={{ display: "none" }} onChange={e => addFiles(e.target.files)} />
         </div>
 
-        {/* Photo grid */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1rem" }}>
           {photos.map((photo, index) => (
             <div key={index} style={{ background: "#fff", border: "0.5px solid #dedad4", borderRadius: "4px", overflow: "hidden" }}>
               <div style={{ position: "relative", paddingBottom: "65%", background: "#e8e4de" }}>
                 <img src={photo.preview} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
                 <button onClick={() => removePhoto(index)} style={{ position: "absolute", top: "8px", right: "8px", background: "rgba(0,0,0,0.5)", border: "none", color: "#fff", width: "28px", height: "28px", borderRadius: "50%", cursor: "pointer", fontSize: "16px" }}>×</button>
-                {photo.status === "analysing" && (
+                {(photo.status === "analysing" || photo.status === "uploading") && (
                   <div style={{ position: "absolute", inset: 0, background: "rgba(247,245,241,0.85)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189" }}>Analysing...</p>
+                    <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189" }}>
+                      {photo.status === "analysing" ? "Analysing..." : "Uploading..."}
+                    </p>
                   </div>
                 )}
                 {photo.status === "published" && (
@@ -206,9 +189,7 @@ export default function AdminPage() {
                   {categories.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
                 </select>
                 <input type="text" placeholder="Location" value={photo.location || ""} onChange={e => updateField(index, "location", e.target.value)} style={{ ...inputStyle, marginTop: "8px" }} />
-
                 {photo.error && <p style={{ color: "#c97a5a", fontSize: "12px", margin: "8px 0 0" }}>{photo.error}</p>}
-
                 <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
                   {(photo.status === "pending" || photo.status === "error") && (
                     <button onClick={() => analyseOne(index)} style={btnStyle("#1a1814", true)}>✨ AI Fill</button>
@@ -220,7 +201,7 @@ export default function AdminPage() {
                     </>
                   )}
                   {photo.status === "uploading" && (
-                    <button disabled style={btnStyle("#9a9189", true)}>Publishing...</button>
+                    <button disabled style={btnStyle("#9a9189", true)}>Uploading...</button>
                   )}
                 </div>
               </div>
@@ -230,9 +211,7 @@ export default function AdminPage() {
 
         {photos.length === 0 && (
           <div style={{ textAlign: "center", padding: "4rem 0" }}>
-            <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "20px", color: "#dedad4" }}>
-              No photos yet — drop some above
-            </p>
+            <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "20px", color: "#dedad4" }}>No photos yet — drop some above</p>
           </div>
         )}
       </div>
@@ -241,28 +220,14 @@ export default function AdminPage() {
 }
 
 const btnStyle = (bg: string, small?: boolean): React.CSSProperties => ({
-  fontFamily: "'Inter', system-ui, sans-serif",
-  fontSize: "10px",
-  letterSpacing: "0.14em",
-  textTransform: "uppercase",
-  color: "#f7f5f1",
-  background: bg,
-  border: "none",
-  padding: small ? "8px 16px" : "10px 20px",
-  borderRadius: "2px",
-  cursor: "pointer",
+  fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em",
+  textTransform: "uppercase", color: "#f7f5f1", background: bg, border: "none",
+  padding: small ? "8px 16px" : "10px 20px", borderRadius: "2px", cursor: "pointer",
   flex: small ? 1 : undefined,
 });
 
 const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "8px 12px",
-  fontFamily: "'Inter', system-ui, sans-serif",
-  fontSize: "13px",
-  border: "0.5px solid #dedad4",
-  borderRadius: "2px",
-  background: "#f7f5f1",
-  color: "#1a1814",
-  outline: "none",
-  boxSizing: "border-box",
+  width: "100%", padding: "8px 12px", fontFamily: "'Inter', system-ui, sans-serif",
+  fontSize: "13px", border: "0.5px solid #dedad4", borderRadius: "2px",
+  background: "#f7f5f1", color: "#1a1814", outline: "none", boxSizing: "border-box",
 };
