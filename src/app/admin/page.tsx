@@ -109,7 +109,7 @@ export default function AdminPage() {
               <button onClick={analyseAll} style={btnStyle("#1a1814")}>✨ Analyse All</button>
             )}
             
-              href="/studio"
+              <a href="/studio"
               target="_blank"
               style={{
                 ...btnStyle("#a07850"),
