@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 
 type PhotoResult = {
   file: File;
@@ -29,22 +29,54 @@ export default function AdminPage() {
     setPhotos(prev => [...prev, ...newPhotos]);
   };
 
-  const analyseOne = async (index: number) => {
-    const photo = photos[index];
-    setPhotos(prev => prev.map((p, i) => i === index ? { ...p, status: "analysing" } : p));
+  const resizeAndEncode = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const maxSize = 1200;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxSize || h > maxSize) {
+          if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
+          else { w = Math.round(w * maxSize / h); h = maxSize; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        const base64 = canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
+        resolve(base64);
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  };
 
+  const toBase64Full = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve((reader.result as string).split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const analyseOne = async (index: number) => {
+    setPhotos(prev => prev.map((p, i) => i === index ? { ...p, status: "analysing" } : p));
     try {
-      const base64 = await toBase64(photo.file);
+      const base64 = await resizeAndEncode(photos[index].file);
       const res = await fetch("/api/autofill", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ base64, mimeType: photo.file.type }),
+        body: JSON.stringify({ base64, mimeType: "image/jpeg" }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setPhotos(prev => prev.map((p, i) => i === index ? {
-        ...p,
-        status: "done",
+        ...p, status: "done",
         title: data.title,
         category: data.category,
         location: data.location || "",
@@ -55,9 +87,9 @@ export default function AdminPage() {
   };
 
   const analyseAll = async () => {
-    for (let i = 0; i < photos.length; i++) {
-      if (photos[i].status === "pending") await analyseOne(i);
-    }
+    const pending = photos.map((p, i) => ({ p, i })).filter(({ p }) => p.status === "pending");
+    setPhotos(prev => prev.map((p) => p.status === "pending" ? { ...p, status: "analysing" } : p));
+    await Promise.all(pending.map(({ i }) => analyseOne(i)));
   };
 
   const updateField = (index: number, field: string, value: string) => {
@@ -67,9 +99,8 @@ export default function AdminPage() {
   const publishOne = async (index: number) => {
     const photo = photos[index];
     setPhotos(prev => prev.map((p, i) => i === index ? { ...p, status: "uploading" } : p));
-
     try {
-      const base64 = await toBase64(photo.file);
+      const base64 = await toBase64Full(photo.file);
       const res = await fetch("/api/publish-photo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -91,9 +122,8 @@ export default function AdminPage() {
   };
 
   const publishAll = async () => {
-    for (let i = 0; i < photos.length; i++) {
-      if (photos[i].status === "done") await publishOne(i);
-    }
+    const done = photos.map((p, i) => ({ p, i })).filter(({ p }) => p.status === "done");
+    await Promise.all(done.map(({ i }) => publishOne(i)));
   };
 
   const removePhoto = (index: number) => {
@@ -110,19 +140,15 @@ export default function AdminPage() {
               Upload Photos
             </h1>
             <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "13px", color: "#9a9189", marginTop: "0.5rem" }}>
-              Drop your photos, let AI fill in the details, publish to your site.
+              Drop your photos, AI fills the details, publish instantly.
             </p>
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
-            {photos.some(p => p.status === "pending") && (
-              <button onClick={analyseAll} style={btnStyle("#1a1814")}>
-                ✨ Analyse All
-              </button>
+            {photos.some(p => p.status === "pending" || p.status === "error") && (
+              <button onClick={analyseAll} style={btnStyle("#1a1814")}>✨ Analyse All</button>
             )}
             {photos.some(p => p.status === "done") && (
-              <button onClick={publishAll} style={btnStyle("#a07850")}>
-                Publish All
-              </button>
+              <button onClick={publishAll} style={btnStyle("#a07850")}>Publish All</button>
             )}
           </div>
         </div>
@@ -148,73 +174,44 @@ export default function AdminPage() {
             Drop photos here or click to select
           </p>
           <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#dedad4", marginTop: "0.5rem" }}>
-            Select multiple at once — JPG, PNG, WEBP
+            Select multiple at once · Images are resized for faster AI analysis
           </p>
-          <input
-            id="file-input"
-            type="file"
-            multiple
-            accept="image/*"
-            style={{ display: "none" }}
-            onChange={e => addFiles(e.target.files)}
-          />
+          <input id="file-input" type="file" multiple accept="image/*" style={{ display: "none" }}
+            onChange={e => addFiles(e.target.files)} />
         </div>
 
-        {/* Photo cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "1rem" }}>
+        {/* Photo grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1rem" }}>
           {photos.map((photo, index) => (
             <div key={index} style={{ background: "#fff", border: "0.5px solid #dedad4", borderRadius: "4px", overflow: "hidden" }}>
-              {/* Image preview */}
-              <div style={{ position: "relative", paddingBottom: "60%", background: "#e8e4de" }}>
+              <div style={{ position: "relative", paddingBottom: "65%", background: "#e8e4de" }}>
                 <img src={photo.preview} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-                <button
-                  onClick={() => removePhoto(index)}
-                  style={{ position: "absolute", top: "8px", right: "8px", background: "rgba(0,0,0,0.5)", border: "none", color: "#fff", width: "28px", height: "28px", borderRadius: "50%", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}
-                >×</button>
+                <button onClick={() => removePhoto(index)} style={{ position: "absolute", top: "8px", right: "8px", background: "rgba(0,0,0,0.5)", border: "none", color: "#fff", width: "28px", height: "28px", borderRadius: "50%", cursor: "pointer", fontSize: "16px" }}>×</button>
+                {photo.status === "analysing" && (
+                  <div style={{ position: "absolute", inset: 0, background: "rgba(247,245,241,0.85)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189" }}>Analysing...</p>
+                  </div>
+                )}
                 {photo.status === "published" && (
                   <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ color: "#fff", fontSize: "24px" }}>✓ Published</span>
+                    <p style={{ color: "#fff", fontSize: "20px" }}>✓ Published</p>
                   </div>
                 )}
               </div>
 
-              {/* Fields */}
               <div style={{ padding: "1rem" }}>
-                <input
-                  type="text"
-                  placeholder="Title"
-                  value={photo.title || ""}
-                  onChange={e => updateField(index, "title", e.target.value)}
-                  style={inputStyle}
-                />
-                <select
-                  value={photo.category || ""}
-                  onChange={e => updateField(index, "category", e.target.value)}
-                  style={{ ...inputStyle, marginTop: "8px" }}
-                >
+                <input type="text" placeholder="Title" value={photo.title || ""} onChange={e => updateField(index, "title", e.target.value)} style={inputStyle} />
+                <select value={photo.category || ""} onChange={e => updateField(index, "category", e.target.value)} style={{ ...inputStyle, marginTop: "8px" }}>
                   <option value="">Select category</option>
                   {categories.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
                 </select>
-                <input
-                  type="text"
-                  placeholder="Location"
-                  value={photo.location || ""}
-                  onChange={e => updateField(index, "location", e.target.value)}
-                  style={{ ...inputStyle, marginTop: "8px" }}
-                />
+                <input type="text" placeholder="Location" value={photo.location || ""} onChange={e => updateField(index, "location", e.target.value)} style={{ ...inputStyle, marginTop: "8px" }} />
 
-                {photo.error && (
-                  <p style={{ color: "#c97a5a", fontSize: "12px", margin: "8px 0 0" }}>{photo.error}</p>
-                )}
+                {photo.error && <p style={{ color: "#c97a5a", fontSize: "12px", margin: "8px 0 0" }}>{photo.error}</p>}
 
                 <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
                   {(photo.status === "pending" || photo.status === "error") && (
-                    <button onClick={() => analyseOne(index)} style={btnStyle("#1a1814", true)}>
-                      ✨ AI Fill
-                    </button>
-                  )}
-                  {photo.status === "analysing" && (
-                    <button disabled style={btnStyle("#9a9189", true)}>Analysing...</button>
+                    <button onClick={() => analyseOne(index)} style={btnStyle("#1a1814", true)}>✨ AI Fill</button>
                   )}
                   {photo.status === "done" && (
                     <>
@@ -234,7 +231,7 @@ export default function AdminPage() {
         {photos.length === 0 && (
           <div style={{ textAlign: "center", padding: "4rem 0" }}>
             <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "20px", color: "#dedad4" }}>
-              No photos yet — drop some above to get started
+              No photos yet — drop some above
             </p>
           </div>
         )}
@@ -269,12 +266,3 @@ const inputStyle: React.CSSProperties = {
   outline: "none",
   boxSizing: "border-box",
 };
-
-async function toBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve((reader.result as string).split(",")[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
