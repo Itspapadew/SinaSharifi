@@ -21,7 +21,7 @@ export function AiTitleInput(props: any) {
       const dataset = 'production'
       const ref = image.asset._ref
       const clean = ref.replace('image-', '').replace(/-(\w+)$/, '.$1')
-      const imageUrl = `https://cdn.sanity.io/images/${projectId}/${dataset}/${clean}`
+      const imageUrl = `https://cdn.sanity.io/images/${projectId}/${dataset}/${clean}?w=1200&fit=max`
 
       const res = await fetch('https://sharifisina.com/api/autofill', {
         method: 'POST',
