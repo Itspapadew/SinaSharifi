@@ -1,8 +1,6 @@
 "use client";
 import { useState } from "react";
 
-
-
 type PhotoResult = {
   file: File;
   preview: string;
@@ -15,6 +13,37 @@ type PhotoResult = {
 
 const categories = ["landscape", "wildlife", "portrait", "macro", "family"];
 
+async function resizeAndEncode(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const maxSize = 1200;
+      let w = img.width, h = img.height;
+      if (w > maxSize || h > maxSize) {
+        if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
+        else { w = Math.round(w * maxSize / h); h = maxSize; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.85).split(",")[1]);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function toBase64Full(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve((reader.result as string).split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function AdminPage() {
   const [photos, setPhotos] = useState<PhotoResult[]>([]);
   const [dragOver, setDragOver] = useState(false);
@@ -23,34 +52,8 @@ export default function AdminPage() {
     if (!files) return;
     const newPhotos: PhotoResult[] = Array.from(files)
       .filter(f => f.type.startsWith("image/"))
-      .map(file => ({
-        file,
-        preview: URL.createObjectURL(file),
-        status: "pending",
-      }));
+      .map(file => ({ file, preview: URL.createObjectURL(file), status: "pending" }));
     setPhotos(prev => [...prev, ...newPhotos]);
-  };
-
-  const resizeAndEncode = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        const maxSize = 1200;
-        let w = img.width, h = img.height;
-        if (w > maxSize || h > maxSize) {
-          if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
-          else { w = Math.round(w * maxSize / h); h = maxSize; }
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = w; canvas.height = h;
-        canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
-        URL.revokeObjectURL(url);
-        resolve(canvas.toDataURL("image/jpeg", 0.85).split(",")[1]);
-      };
-      img.onerror = reject;
-      img.src = url;
-    });
   };
 
   const analyseOne = async (index: number) => {
@@ -110,7 +113,7 @@ export default function AdminPage() {
 
   const publishAll = async () => {
     const done = photos.map((p, i) => ({ p, i })).filter(({ p }) => p.status === "done");
-    await Promise.all(done.map(({ i }) => publishOne(i)));
+    for (const { i } of done) await publishOne(i);
   };
 
   const removePhoto = (index: number) => {
@@ -143,7 +146,8 @@ export default function AdminPage() {
           style={{
             border: `2px dashed ${dragOver ? "#a07850" : "#dedad4"}`,
             borderRadius: "4px", padding: "3rem", textAlign: "center", cursor: "pointer",
-            marginBottom: "2rem", background: dragOver ? "rgba(160,120,80,0.04)" : "transparent", transition: "all 0.2s",
+            marginBottom: "2rem", background: dragOver ? "rgba(160,120,80,0.04)" : "transparent",
+            transition: "all 0.2s",
           }}
         >
           <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "24px", color: "#9a9189", margin: 0 }}>Drop photos here or click to select</p>
@@ -170,7 +174,6 @@ export default function AdminPage() {
                   </div>
                 )}
               </div>
-
               <div style={{ padding: "1rem" }}>
                 <input type="text" placeholder="Title" value={photo.title || ""} onChange={e => updateField(index, "title", e.target.value)} style={inputStyle} />
                 <select value={photo.category || ""} onChange={e => updateField(index, "category", e.target.value)} style={{ ...inputStyle, marginTop: "8px" }}>
