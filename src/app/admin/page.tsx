@@ -100,13 +100,13 @@ export default function AdminPage() {
     const photo = photos[index];
     setPhotos(prev => prev.map((p, i) => i === index ? { ...p, status: "uploading" } : p));
     try {
-      const base64 = await resizeAndEncode(photo.file);
+      const base64 = await toBase64Full(photo.file);
       const res = await fetch("/api/publish-photo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           base64,
-          mimeType: 'image/jpeg',
+          mimeType: photo.file.type,
           filename: photo.file.name,
           title: photo.title,
           category: photo.category,
