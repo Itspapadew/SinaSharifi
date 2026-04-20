@@ -1,5 +1,5 @@
 import { client } from '@/sanity/lib/client'
-import { urlFor } from '@/sanity/lib/image'
+import { printsQuery } from '@/sanity/lib/queries'
 import PrintsClient from '@/components/PrintsClient'
 
 export const revalidate = 60
@@ -9,19 +9,6 @@ export const metadata = {
   description: 'Limited edition fine art prints by Sina Sharifi.',
 }
 
-const printsQuery = `
-  *[_type == "photo" && availableAsPrint == true] | order(publishedAt desc) {
-    _id,
-    title,
-    location,
-    category,
-    image,
-    price,
-    edition,
-    "sold": 0,
-  }
-`
-
 export default async function PrintsPage() {
   const photos = await client.fetch(printsQuery)
 
@@ -29,16 +16,10 @@ export default async function PrintsPage() {
     id: p._id,
     title: p.title,
     location: p.location || '',
-    category: p.category,
-    image: urlFor(p.image).width(1200).url(),
-    sizes: [
-      { label: '12"×18"', price: p.price || 150 },
-      { label: '20"×30"', price: Math.round((p.price || 150) * 1.8) },
-      { label: '30"×45"', price: Math.round((p.price || 150) * 2.7) },
-    ],
+    category: p.category || '',
+    image: `${p.src}?w=1200&fit=max`,
+    basePrice: p.price || 45,
     edition: p.edition || 50,
-    sold: p.sold || 0,
-    story: '',
   }))
 
   return (
@@ -55,7 +36,7 @@ export default async function PrintsPage() {
       {prints.length === 0 ? (
         <div style={{ padding: "6rem 2.5rem", textAlign: "center" }}>
           <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "24px", color: "#9a9189" }}>
-            No prints available yet. Mark photos as available in the <a href="/studio" style={{ color: "#a07850" }}>studio</a>.
+            No prints available yet. Check back soon.
           </p>
         </div>
       ) : (

@@ -1,20 +1,27 @@
 import { groq } from 'next-sanity'
 
 export const homePhotosQuery = groq`
-  *[_type == "photo"] | order(publishedAt desc) [0...50] {
+{
+  "photos": *[_type == "photo"] | order(publishedAt desc) [0...50] {
     _id,
+    _type,
     title,
     location,
     category,
     availableAsPrint,
     price,
     publishedAt,
-    image {
-      asset,
-      hotspot,
-      crop,
-    }
+    "src": image.asset->url,
+  },
+  "quickUploads": *[_type == "quickUpload"] | order(publishedAt desc) [0...50] {
+    _id,
+    _type,
+    location,
+    category,
+    publishedAt,
+    "images": images[].asset->url,
   }
+}
 `
 
 export const portfolioPhotosQuery = groq`
@@ -26,28 +33,20 @@ export const portfolioPhotosQuery = groq`
     availableAsPrint,
     price,
     publishedAt,
-    image {
-      asset,
-      hotspot,
-      crop,
-    }
+    "src": image.asset->url,
   }
 `
 
-export const portfolioByCategoryQuery = groq`
-  *[_type == "photo" && category == $category] | order(publishedAt desc) {
+export const printsQuery = groq`
+  *[_type == "photo" && availableAsPrint == true] | order(publishedAt desc) {
     _id,
     title,
     location,
     category,
-    availableAsPrint,
     price,
+    edition,
     publishedAt,
-    image {
-      asset,
-      hotspot,
-      crop,
-    }
+    "src": image.asset->url,
   }
 `
 
@@ -59,11 +58,7 @@ export const allStoriesQuery = groq`
     location,
     category,
     publishedAt,
-    coverImage {
-      asset,
-      hotspot,
-      crop,
-    }
+    "src": coverImage.asset->url,
   }
 `
 
@@ -80,15 +75,9 @@ export const storyBySlugQuery = groq`
     price,
     edition,
     publishedAt,
-    coverImage {
-      asset,
-      hotspot,
-      crop,
-    },
+    "coverSrc": coverImage.asset->url,
     images[] {
-      asset,
-      hotspot,
-      crop,
+      "src": asset->url,
       caption,
     }
   }
