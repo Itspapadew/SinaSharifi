@@ -37,7 +37,6 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
     );
   }
 
-  // Group photos into blocks of 5 for the asymmetric pattern
   const blocks: Photo[][] = [];
   for (let i = 0; i < photos.length; i += 5) {
     blocks.push(photos.slice(i, i + 5));
@@ -53,6 +52,7 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
         overflow: "hidden",
         cursor: "zoom-in",
         background: "#e8e4de",
+        willChange: "transform",
         ...style,
       }}
     >
@@ -64,6 +64,9 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
           objectFit: "cover",
           transition: "transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
           transform: hovered === photo.id ? "scale(1.05)" : "scale(1)",
+          willChange: "transform",
+          backfaceVisibility: "hidden",
+          WebkitBackfaceVisibility: "hidden",
         }}
         sizes="(max-width: 768px) 100vw, 50vw"
       />
@@ -73,6 +76,7 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
         background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%)",
         opacity: hovered === photo.id ? 1 : 0,
         transition: "opacity 0.35s ease",
+        pointerEvents: "none",
       }} />
       <div style={{
         position: "absolute",
@@ -81,10 +85,13 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
         opacity: hovered === photo.id ? 1 : 0,
         transition: "opacity 0.35s ease, transform 0.35s ease",
         transform: hovered === photo.id ? "translateY(0)" : "translateY(8px)",
+        pointerEvents: "none",
       }}>
-        <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "18px", fontWeight: 300, color: "#f0ece4", margin: 0 }}>
-          {photo.title}
-        </p>
+        {photo.title && (
+          <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "18px", fontWeight: 300, color: "#f0ece4", margin: 0 }}>
+            {photo.title}
+          </p>
+        )}
         {photo.location && (
           <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "12px", color: "rgba(240,236,228,0.7)", margin: "3px 0 0" }}>
             {photo.location}
@@ -108,11 +115,9 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
           const isEven = blockIndex % 2 === 0;
           const filled = [...block];
           while (filled.length < 5) filled.push(filled[filled.length - 1]);
-
           const globalIndex = (i: number) => blockIndex * 5 + i;
 
           if (isEven) {
-            // Layout A: big left, 2x2 right
             return (
               <div key={blockIndex} style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 1fr", gridTemplateRows: "340px 260px", gap: "3px" }}>
                 <Cell photo={filled[0]} index={globalIndex(0)} style={{ gridRow: "span 2" }} />
@@ -123,7 +128,6 @@ export default function HomeGrid({ photos }: { photos: Photo[] }) {
               </div>
             );
           } else {
-            // Layout B: 2x2 left, big right — mirrored
             return (
               <div key={blockIndex} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.6fr", gridTemplateRows: "260px 340px", gap: "3px" }}>
                 <Cell photo={filled[0]} index={globalIndex(0)} style={{}} />
