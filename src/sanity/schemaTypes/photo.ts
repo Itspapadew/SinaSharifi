@@ -1,4 +1,5 @@
 import { defineField, defineType } from 'sanity'
+import { AiTitleInput } from '../components/AiTitleInput'
 
 export default defineType({
   name: 'photo',
@@ -16,6 +17,7 @@ export default defineType({
       name: 'title',
       title: 'Title',
       type: 'string',
+      components: { input: AiTitleInput },
       validation: Rule => Rule.required(),
     }),
     defineField({
@@ -52,8 +54,14 @@ export default defineType({
     }),
     defineField({
       name: 'price',
-      title: 'Starting price ($)',
+      title: 'Base price ($)',
       type: 'number',
+    }),
+    defineField({
+      name: 'edition',
+      title: 'Edition size',
+      type: 'number',
+      initialValue: 50,
     }),
     defineField({
       name: 'publishedAt',
