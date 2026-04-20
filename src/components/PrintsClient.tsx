@@ -28,10 +28,10 @@ type Print = {
 };
 
 const SIZES: PrintSize[] = [
-  { label: 'Small', inches: '12×18"', sku: 'GLOBAL-FAP-12x18', price: 120 },
-  { label: 'Medium', inches: '16×24"', sku: 'GLOBAL-FAP-16x24', price: 200 },
-  { label: 'Large', inches: '24×36"', sku: 'GLOBAL-FAP-24x36', price: 320 },
-  { label: 'Large', inches: '24×36"', sku: 'GLOBAL-FAP-24x36', price: 480 },
+  { label: 'Small', inches: '12×18"', sku: 'GLOBAL-FAP-12x18', price: 45 },
+  { label: 'Medium', inches: '16×24"', sku: 'GLOBAL-FAP-16x24', price: 75 },
+  { label: 'Large', inches: '24×36"', sku: 'GLOBAL-FAP-24x36', price: 120 },
+  { label: 'Large', inches: '24×36"', sku: 'GLOBAL-FAP-24x36', price: 160 },
 ];
 
 const PAPERS: PaperOption[] = [
@@ -45,7 +45,7 @@ const PAPERS: PaperOption[] = [
     id: 'hahnemuhle',
     label: 'Hahnemühle Fine Art',
     description: 'Museum-grade 310gsm cotton rag. Used by galleries worldwide. 100+ year archival.',
-    priceMultiplier: 1.6,
+    priceMultiplier: 1.4,
   },
 ];
 
