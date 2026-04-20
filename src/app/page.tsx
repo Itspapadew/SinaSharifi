@@ -16,7 +16,7 @@ export default async function Home() {
       title: p.title || '',
       location: p.location || '',
       category: p.category || '',
-      src: `${p.src}?w=800&fit=max`,
+      src: `${p.src}?w=1600&fit=max`,
       availableAsPrint: p.availableAsPrint || false,
       price: p.price,
       publishedAt: p.publishedAt,
@@ -30,7 +30,7 @@ export default async function Home() {
         title: '',
         location: q.location || '',
         category: q.category || '',
-        src: `${imgSrc}?w=800&fit=max`,
+        src: `${imgSrc}?w=1600&fit=max`,
         availableAsPrint: false,
         publishedAt: q.publishedAt,
       })
