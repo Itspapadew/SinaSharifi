@@ -23,17 +23,17 @@ const CATEGORIES = [
 ];
 
 const PORTRAIT_SIZES = [
-  { label: '12x18"', sku: 'GLOBAL-FAP-12x18', price: 45 },
-  { label: '16x24"', sku: 'GLOBAL-FAP-16x24', price: 75 },
-  { label: '24x36"', sku: 'GLOBAL-FAP-24x36', price: 120 },
-  { label: '30x45"', sku: 'GLOBAL-FAP-30x45', price: 160 },
+  { label: '12x18"', sku: 'GLOBAL-FAP-12x18', price: 45, scale: 0.30 },
+  { label: '16x24"', sku: 'GLOBAL-FAP-16x24', price: 75, scale: 0.40 },
+  { label: '24x36"', sku: 'GLOBAL-FAP-24x36', price: 120, scale: 0.55 },
+  { label: '30x45"', sku: 'GLOBAL-FAP-30x45', price: 160, scale: 0.68 },
 ];
 
 const LANDSCAPE_SIZES = [
-  { label: '18x12"', sku: 'GLOBAL-FAP-18x12', price: 45 },
-  { label: '24x16"', sku: 'GLOBAL-FAP-24x16', price: 75 },
-  { label: '36x24"', sku: 'GLOBAL-FAP-36x24', price: 120 },
-  { label: '45x30"', sku: 'GLOBAL-FAP-45x30', price: 160 },
+  { label: '18x12"', sku: 'GLOBAL-FAP-18x12', price: 45, scale: 0.38 },
+  { label: '24x16"', sku: 'GLOBAL-FAP-24x16', price: 75, scale: 0.50 },
+  { label: '36x24"', sku: 'GLOBAL-FAP-36x24', price: 120, scale: 0.65 },
+  { label: '45x30"', sku: 'GLOBAL-FAP-45x30', price: 160, scale: 0.78 },
 ];
 
 const PAPERS = [
@@ -41,68 +41,102 @@ const PAPERS = [
   { id: 'hahnemuhle', label: 'Hahnemuhle Fine Art', desc: '310gsm cotton rag · museum grade · 100+ year archival', multiplier: 1.4 },
 ];
 
-function FramedPreview({ imageSrc, title, orientation }: { imageSrc: string; title: string; orientation: 'portrait' | 'landscape' }) {
+function FramedPreview({ imageSrc, title, orientation, scale }: { imageSrc: string; title: string; orientation: 'portrait' | 'landscape'; scale: number }) {
+  const frameW = orientation === 'landscape' ? scale * 100 : scale * 60;
+  const frameH = orientation === 'landscape' ? scale * 60 : scale * 100;
+
   return (
     <div style={{
-      width: "100%", height: "100%",
-      background: "#e8e0d4",
+      width: "100%", height: "100%", minHeight: "420px",
+      background: "#dedad4",
       display: "flex", alignItems: "center", justifyContent: "center",
-      position: "relative",
+      position: "relative", flexDirection: "column",
     }}>
-      {/* Wall texture */}
+      {/* Wall */}
       <div style={{
-        position: "absolute", inset: 0,
-        backgroundImage: "repeating-linear-gradient(90deg, rgba(0,0,0,0.015) 0px, transparent 1px, transparent 60px)",
-      }} />
-      {/* Ceiling shadow */}
-      <div style={{
-        position: "absolute", top: 0, left: 0, right: 0, height: "20%",
-        background: "linear-gradient(to bottom, rgba(0,0,0,0.08), transparent)",
-        pointerEvents: "none",
-      }} />
-
-      {/* Framed print */}
-      <div style={{
-        position: "relative",
-        width: orientation === 'landscape' ? "70%" : "45%",
-        aspectRatio: orientation === 'landscape' ? "3/2" : "2/3",
-        boxShadow: "4px 8px 32px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.15)",
+        position: "absolute", top: 0, left: 0, right: 0, bottom: "18%",
+        background: "#e8e2d8",
       }}>
-        {/* Outer frame */}
         <div style={{
-          position: "absolute", inset: 0,
-          background: "#f0ece4",
-          border: "1px solid rgba(0,0,0,0.08)",
-        }} />
-        {/* Mat */}
-        <div style={{
-          position: "absolute", inset: "10px",
-          background: "#f7f5f1",
-        }} />
-        {/* Print */}
-        <div style={{ position: "absolute", inset: "22px", overflow: "hidden" }}>
-          <Image src={imageSrc} alt={title} fill style={{ objectFit: "cover" }} sizes="400px" />
-        </div>
-        {/* Frame highlight */}
-        <div style={{
-          position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-          background: "rgba(255,255,255,0.5)",
-          pointerEvents: "none",
-        }} />
-        {/* Frame shadow bottom */}
-        <div style={{
-          position: "absolute", bottom: 0, left: 0, right: 0, height: "2px",
-          background: "rgba(0,0,0,0.1)",
-          pointerEvents: "none",
+          position: "absolute", top: 0, left: 0, right: 0, height: "25%",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.07), transparent)",
         }} />
       </div>
 
-      {/* Floor shadow */}
+      {/* Floor */}
       <div style={{
-        position: "absolute", bottom: 0, left: 0, right: 0, height: "15%",
-        background: "linear-gradient(to top, rgba(0,0,0,0.1), transparent)",
-        pointerEvents: "none",
-      }} />
+        position: "absolute", bottom: 0, left: 0, right: 0, height: "18%",
+        background: "#c4b89a",
+        borderTop: "2px solid #b8a888",
+      }}>
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: "40%",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.1), transparent)",
+        }} />
+      </div>
+
+      {/* Person silhouette for scale reference */}
+      <div style={{
+        position: "absolute", bottom: "18%", right: "12%",
+        width: "28px", height: "90px",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        gap: "2px",
+        opacity: 0.25,
+      }}>
+        <div style={{ width: "14px", height: "14px", borderRadius: "50%", background: "#5a4a3a" }} />
+        <div style={{ width: "20px", flex: 1, background: "#5a4a3a", borderRadius: "2px" }} />
+        <div style={{ display: "flex", gap: "4px" }}>
+          <div style={{ width: "8px", height: "24px", background: "#5a4a3a", borderRadius: "2px" }} />
+          <div style={{ width: "8px", height: "24px", background: "#5a4a3a", borderRadius: "2px" }} />
+        </div>
+      </div>
+
+      {/* Framed print — scales with size */}
+      <div style={{
+        position: "relative",
+        zIndex: 2,
+        marginBottom: "18%",
+        transition: "all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+      }}>
+        <div style={{
+          width: `${frameW}px`,
+          height: `${frameH}px`,
+          background: "#f0ece4",
+          border: "1px solid rgba(0,0,0,0.1)",
+          boxShadow: "3px 6px 24px rgba(0,0,0,0.25), 0 1px 4px rgba(0,0,0,0.12)",
+          padding: "8px",
+          position: "relative",
+        }}>
+          {/* Mat */}
+          <div style={{ position: "absolute", inset: "8px", background: "#f7f5f1" }} />
+          {/* Image */}
+          <div style={{ position: "absolute", inset: "18px", overflow: "hidden" }}>
+            <Image src={imageSrc} alt={title} fill style={{ objectFit: "cover" }} sizes="300px" />
+          </div>
+          {/* Frame highlight */}
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: "rgba(255,255,255,0.5)" }} />
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "rgba(0,0,0,0.08)" }} />
+        </div>
+        {/* Wall shadow */}
+        <div style={{
+          position: "absolute", bottom: "-12px", left: "10%", right: "10%", height: "12px",
+          background: "rgba(0,0,0,0.12)", filter: "blur(6px)", borderRadius: "50%",
+        }} />
+      </div>
+
+      {/* Size label */}
+      <div style={{
+        position: "absolute", bottom: "22%", left: "50%",
+        transform: "translateX(-50%)",
+      }}>
+        <p style={{
+          fontFamily: "'Inter', system-ui, sans-serif", fontSize: "9px",
+          letterSpacing: "0.12em", textTransform: "uppercase",
+          color: "rgba(0,0,0,0.3)", margin: 0, whiteSpace: "nowrap",
+        }}>
+          {Math.round(frameW)} × {Math.round(frameH)} px preview
+        </p>
+      </div>
     </div>
   );
 }
@@ -136,6 +170,16 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
     setTimeout(() => setAdded(false), 2000);
   };
 
+  const arrowStyle: React.CSSProperties = {
+    position: "absolute", top: "50%", transform: "translateY(-50%)",
+    background: "rgba(247,245,241,0.9)", border: "0.5px solid rgba(0,0,0,0.1)",
+    color: "#1a1814", width: "36px", height: "36px",
+    borderRadius: "50%", cursor: "pointer",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    fontSize: "16px", zIndex: 10, transition: "all 0.2s",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+  };
+
   return (
     <div
       onClick={onClose}
@@ -150,23 +194,26 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: "#f7f5f1", width: "100%", maxWidth: "900px",
+          background: "#f7f5f1", width: "100%", maxWidth: "920px",
           borderRadius: "4px", overflow: "hidden",
           display: "grid", gridTemplateColumns: "1fr 1fr",
         }}
       >
-        {/* Left — image slides */}
-        <div style={{ position: "relative", minHeight: "460px", background: "#e8e4de", overflow: "hidden" }}>
+        {/* Left — slides */}
+        <div style={{ position: "relative", minHeight: "460px", overflow: "hidden" }}>
 
-          {/* Slide 0 — original photo */}
+          {/* Slide 0 — full photo */}
           <div style={{
             position: "absolute", inset: 0,
+            background: "#1a1814",
             opacity: slide === 0 ? 1 : 0,
             transition: "opacity 0.4s ease",
+            display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <Image
-              src={print.image} alt={print.title} fill
-              style={{ objectFit: "cover" }}
+              src={print.image} alt={print.title}
+              width={800} height={600}
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
               onLoad={e => {
                 const img = e.target as HTMLImageElement;
                 setOrientation(img.naturalWidth > img.naturalHeight ? 'landscape' : 'portrait');
@@ -175,42 +222,65 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
             />
           </div>
 
-          {/* Slide 1 — framed mockup */}
+          {/* Slide 1 — framed */}
           <div style={{
             position: "absolute", inset: 0,
             opacity: slide === 1 ? 1 : 0,
             transition: "opacity 0.4s ease",
           }}>
-            <FramedPreview imageSrc={print.image} title={print.title} orientation={orientation} />
+            <FramedPreview
+              imageSrc={print.image}
+              title={print.title}
+              orientation={orientation}
+              scale={size.scale}
+            />
           </div>
 
-          {/* Slide dots */}
+          {/* Left arrow */}
+          {slide === 1 && (
+            <button
+              onClick={e => { e.stopPropagation(); setSlide(0); }}
+              style={{ ...arrowStyle, left: "12px" }}
+            >
+              ←
+            </button>
+          )}
+
+          {/* Right arrow */}
+          {slide === 0 && (
+            <button
+              onClick={e => { e.stopPropagation(); setSlide(1); }}
+              style={{ ...arrowStyle, right: "12px" }}
+            >
+              →
+            </button>
+          )}
+
+          {/* Dots */}
           <div style={{
             position: "absolute", bottom: "1rem", left: "50%",
             transform: "translateX(-50%)",
-            display: "flex", gap: "6px",
+            display: "flex", gap: "6px", zIndex: 5,
           }}>
             {[0, 1].map(i => (
               <button key={i} onClick={e => { e.stopPropagation(); setSlide(i); }} style={{
                 width: "8px", height: "8px", borderRadius: "50%",
-                background: slide === i ? "#f7f5f1" : "rgba(247,245,241,0.4)",
+                background: slide === i ? "#f7f5f1" : "rgba(247,245,241,0.35)",
                 border: "none", cursor: "pointer", padding: 0,
                 transition: "all 0.2s",
               }} />
             ))}
           </div>
 
-          {/* Slide labels */}
-          <div style={{
-            position: "absolute", bottom: "1rem", right: "1rem",
-          }}>
+          {/* Slide label */}
+          <div style={{ position: "absolute", bottom: "1rem", right: "1rem", zIndex: 5 }}>
             <span style={{
               fontFamily: "'Inter', system-ui, sans-serif", fontSize: "9px",
               letterSpacing: "0.12em", textTransform: "uppercase",
-              color: "rgba(247,245,241,0.7)",
+              color: "rgba(247,245,241,0.8)",
               background: "rgba(0,0,0,0.3)", padding: "3px 8px", borderRadius: "2px",
             }}>
-              {slide === 0 ? "Photo" : "Framed"}
+              {slide === 0 ? "Photo" : "Framed preview"}
             </span>
           </div>
 
@@ -220,7 +290,7 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
             background: "rgba(0,0,0,0.5)", border: "none", color: "#fff",
             width: "32px", height: "32px", borderRadius: "50%",
             cursor: "pointer", fontSize: "18px", zIndex: 10,
-          }}>x</button>
+          }}>×</button>
         </div>
 
         {/* Right — details */}
