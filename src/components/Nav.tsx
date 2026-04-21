@@ -44,7 +44,7 @@ export default function Nav() {
         {/* Left — Logo */}
         <Link href="/" style={{
           fontFamily: "'Cormorant Garamond', Georgia, serif",
-          fontWeight: 300, fontSize: "22px", letterSpacing: "0.06em",
+          fontWeight: 300, fontSize: "28px", letterSpacing: "0.06em",
           color: "#0a0a0a", textDecoration: "none", lineHeight: 1,
         }}>
           Sina <em style={{ fontStyle: "italic", color: "#a07850" }}>Sharifi</em>
@@ -60,7 +60,7 @@ export default function Nav() {
           ].map(item => (
             <Link key={item.label} href={item.href} style={{
               fontFamily: "'Inter', system-ui, sans-serif",
-              fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase",
+              fontSize: "13px", letterSpacing: "0.10em", textTransform: "uppercase",
               color: "#0a0a0a", fontWeight: 400, textDecoration: "none",
               transition: "opacity 0.2s",
             }}
