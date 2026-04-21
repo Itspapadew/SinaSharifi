@@ -111,7 +111,7 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
               background: "rgba(0,0,0,0.5)", border: "none", color: "#fff",
               width: "32px", height: "32px", borderRadius: "50%",
               cursor: "pointer", fontSize: "18px",
-            }}>×</button>
+            }}>Preview in a room×</button>
           </div>
 
           {/* Details */}
@@ -139,7 +139,7 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
                   color: sizeIndex === i ? "#a07850" : "#6b6256",
                   background: sizeIndex === i ? "rgba(160,120,80,0.06)" : "transparent",
                   borderRadius: "2px", cursor: "pointer", transition: "all 0.2s",
-                }}>
+                }}>Preview in a room
                   {s.label}
                 </button>
               ))}
@@ -154,7 +154,7 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
                   borderColor: paperId === p.id ? "#a07850" : "var(--charcoal)",
                   background: paperId === p.id ? "rgba(160,120,80,0.06)" : "transparent",
                   borderRadius: "2px", cursor: "pointer", transition: "all 0.2s",
-                }}>
+                }}>Preview in a room
                   <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: paperId === p.id ? "#a07850" : "#1a1814", margin: "0 0 3px" }}>{p.label}</p>
                   <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", color: "#9a9189", margin: 0 }}>{p.desc}</p>
                 </button>
@@ -172,7 +172,7 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
                 fontSize: "10px", letterSpacing: "0.16em", textTransform: "uppercase",
                 color: "#f7f5f1", background: added ? "#a07850" : "#1a1814",
                 border: "none", borderRadius: "2px", cursor: "pointer", transition: "all 0.3s",
-              }}>
+              }}>Preview in a room
                 {added ? "✓ Added to cart" : "Add to cart"}
               </button>
             </div>
@@ -183,7 +183,7 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
               color: "#9a9189", background: "transparent",
               border: "0.5px solid var(--charcoal)", borderRadius: "2px",
               cursor: "pointer", transition: "all 0.2s",
-            }}>
+            }}>Preview in a room
             </button>
 
             {/* Specs */}
@@ -293,13 +293,13 @@ export default function PrintsClient({ prints }: { prints: Print[] }) {
                     opacity: hovered === print.id ? 1 : 0,
                     transition: "opacity 0.3s ease",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
+                  }}>Preview in a room
                     <span style={{
                       fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px",
                       letterSpacing: "0.16em", textTransform: "uppercase",
                       color: "#f7f5f1", border: "0.5px solid rgba(247,245,241,0.6)",
                       padding: "8px 20px", borderRadius: "2px",
-                    }}>
+                    }}>Preview in a room
                       View print
                     </span>
                   </div>
