@@ -62,7 +62,7 @@ function FramedMockup({ imageSrc, title, frameW, frameH }: { imageSrc: string; t
         transition: "all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
       }}>
         <div style={{ position: "absolute", inset: 0, background: "#f0ece4", border: "1px solid rgba(0,0,0,0.08)" }} />
-        <div style={{ position: "absolute", inset: "10px", background: "#f7f5f1" }} />
+        <div style={{ position: "absolute", inset: "10px", background: "#ffffff" }} />
         <div style={{ position: "absolute", inset: "22px", overflow: "hidden" }}>
           <Image src={imageSrc} alt={title} fill style={{ objectFit: "cover" }} sizes="400px" />
         </div>
@@ -120,7 +120,7 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
       padding: "1rem", overflowY: "auto",
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: "#f7f5f1", width: "100%", maxWidth: "1100px",
+        background: "#ffffff", width: "100%", maxWidth: "1100px",
         borderRadius: "4px", overflow: "hidden",
         display: "grid", gridTemplateColumns: "1fr 1fr",
       }}>
@@ -285,7 +285,7 @@ export default function PrintsClient({ prints }: { prints: Print[] }) {
                     style={{
                       position: "absolute", bottom: "1rem", right: "1rem",
                       width: "36px", height: "36px", borderRadius: "50%",
-                      background: "#f7f5f1", border: "0.5px solid var(--charcoal)",
+                      background: "#ffffff", border: "0.5px solid var(--charcoal)",
                       cursor: "pointer", fontSize: "18px", color: "#1a1814",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       opacity: hovered === print.id ? 1 : 0,

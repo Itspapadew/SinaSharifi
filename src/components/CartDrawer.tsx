@@ -47,7 +47,7 @@ export default function CartDrawer() {
       <div style={{
         position: "fixed", top: 0, right: 0, bottom: 0, zIndex: 201,
         width: "min(480px, 100vw)",
-        background: "#f7f5f1",
+        background: "#ffffff",
         borderLeft: "0.5px solid var(--charcoal)",
         transform: isOpen ? "translateX(0)" : "translateX(100%)",
         transition: "transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
@@ -59,7 +59,7 @@ export default function CartDrawer() {
           padding: "1.5rem 2rem",
           borderBottom: "0.5px solid var(--charcoal)",
           display: "flex", justifyContent: "space-between", alignItems: "center",
-          position: "sticky", top: 0, background: "#f7f5f1", zIndex: 1,
+          position: "sticky", top: 0, background: "#ffffff", zIndex: 1,
         }}>
           <div>
             <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a9189", margin: 0 }}>
@@ -128,7 +128,7 @@ export default function CartDrawer() {
           <div style={{
             padding: "1.5rem 2rem",
             borderTop: "0.5px solid var(--charcoal)",
-            position: "sticky", bottom: 0, background: "#f7f5f1",
+            position: "sticky", bottom: 0, background: "#ffffff",
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem" }}>
               <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189", margin: 0 }}>Total</p>
