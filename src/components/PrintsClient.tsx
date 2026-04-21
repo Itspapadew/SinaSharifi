@@ -120,7 +120,7 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
       padding: "1rem", overflowY: "auto",
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: "#f7f5f1", width: "100%", maxWidth: "920px",
+        background: "#f7f5f1", width: "100%", maxWidth: "1100px",
         borderRadius: "4px", overflow: "hidden",
         display: "grid", gridTemplateColumns: "1fr 1fr",
       }}>
