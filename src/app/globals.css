@@ -1,12 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400&display=swap');
+
 :root {
-  --nav-height: 64px;
-  --charcoal: rgba(0,0,0,0.12);
+  --obsidian: #ffffff;
+  --obsidian-2: #f9f9f9;
+  --obsidian-3: #f2f2f2;
+  --charcoal: #e0e0e0;
+  --ash: #9a9189;
+  --ash-light: #6b6256;
+  --driftwood: #a07850;
+  --driftwood-light: #c9a878;
+  --linen: #111111;
+  --linen-dim: #333333;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --nav-height: 80px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
+html { scroll-behavior: smooth; }
 body {
   background: #ffffff;
-  color: #0a0a0a;
+  color: #111111;
+  font-family: var(--font-sans);
+  font-weight: 300;
   -webkit-font-smoothing: antialiased;
 }
+h1, h2, h3, h4 { font-family: var(--font-serif); font-weight: 300; line-height: 1.1; }
+p { line-height: 1.7; color: var(--ash-light); }
+a { color: inherit; text-decoration: none; }
+.label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ash);
+  font-weight: 300;
+}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #ffffff; }
+::-webkit-scrollbar-thumb { background: var(--charcoal); border-radius: 2px; }
+::selection { background: var(--driftwood); color: #ffffff; }
