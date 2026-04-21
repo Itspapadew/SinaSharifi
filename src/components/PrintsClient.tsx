@@ -2,7 +2,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useCartStore } from "@/store/cartStore";
-import RoomVisualizer from "@/components/RoomVisualizer";
 
 type Print = {
   id: string;
@@ -47,8 +46,6 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
   const [paperId, setPaperId] = useState('matte');
   const [added, setAdded] = useState(false);
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
-  const [roomStyle, setRoomStyle] = useState<'living' | 'bedroom' | 'office'>('living');
-  const [showRoom, setShowRoom] = useState(false);
   const { addItem } = useCartStore();
 
   const sizes = orientation === 'portrait' ? PORTRAIT_SIZES : LANDSCAPE_SIZES;
@@ -180,8 +177,6 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
               </button>
             </div>
 
-            {/* Preview in room button */}
-            <button onClick={() => setShowRoom(!showRoom)} style={{
               width: "100%", padding: "10px",
               fontFamily: "'Inter', system-ui, sans-serif",
               fontSize: "10px", letterSpacing: "0.16em", textTransform: "uppercase",
@@ -189,7 +184,6 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
               border: "0.5px solid var(--charcoal)", borderRadius: "2px",
               cursor: "pointer", transition: "all 0.2s",
             }}>
-              {showRoom ? "Hide room preview" : "Preview in a room"}
             </button>
 
             {/* Specs */}
@@ -209,16 +203,12 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
         </div>
 
         {/* Room visualizer — expands below */}
-        {showRoom && (
           <div style={{ padding: "2rem", borderTop: "0.5px solid var(--charcoal)" }}>
             <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 1rem" }}>
-              Preview in your space
             </p>
-            <RoomVisualizer
               imageSrc={print.image}
               title={print.title}
               sizeLabel={size.label}
-              roomStyle={roomStyle}
               onRoomChange={setRoomStyle}
             />
           </div>
