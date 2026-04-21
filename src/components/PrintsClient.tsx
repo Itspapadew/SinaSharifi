@@ -23,17 +23,17 @@ const CATEGORIES = [
 ];
 
 const PORTRAIT_SIZES = [
-  { label: '12x18"', sku: 'GLOBAL-FAP-12x18', price: 45 },
-  { label: '16x24"', sku: 'GLOBAL-FAP-16x24', price: 75 },
-  { label: '24x36"', sku: 'GLOBAL-FAP-24x36', price: 120 },
-  { label: '30x45"', sku: 'GLOBAL-FAP-30x45', price: 160 },
+  { label: '12x18"', sku: 'GLOBAL-FAP-12x18', price: 45, frameW: 160, frameH: 240 },
+  { label: '16x24"', sku: 'GLOBAL-FAP-16x24', price: 75, frameW: 200, frameH: 300 },
+  { label: '24x36"', sku: 'GLOBAL-FAP-24x36', price: 120, frameW: 240, frameH: 360 },
+  { label: '30x45"', sku: 'GLOBAL-FAP-30x45', price: 160, frameW: 270, frameH: 405 },
 ];
 
 const LANDSCAPE_SIZES = [
-  { label: '18x12"', sku: 'GLOBAL-FAP-18x12', price: 45 },
-  { label: '24x16"', sku: 'GLOBAL-FAP-24x16', price: 75 },
-  { label: '36x24"', sku: 'GLOBAL-FAP-36x24', price: 120 },
-  { label: '45x30"', sku: 'GLOBAL-FAP-45x30', price: 160 },
+  { label: '18x12"', sku: 'GLOBAL-FAP-18x12', price: 45, frameW: 240, frameH: 160 },
+  { label: '24x16"', sku: 'GLOBAL-FAP-24x16', price: 75, frameW: 300, frameH: 200 },
+  { label: '36x24"', sku: 'GLOBAL-FAP-36x24', price: 120, frameW: 360, frameH: 240 },
+  { label: '45x30"', sku: 'GLOBAL-FAP-45x30', price: 160, frameW: 405, frameH: 270 },
 ];
 
 const PAPERS = [
@@ -41,7 +41,7 @@ const PAPERS = [
   { id: 'hahnemuhle', label: 'Hahnemuhle Fine Art', desc: '310gsm cotton rag · museum grade · 100+ year archival', multiplier: 1.4 },
 ];
 
-function FramedMockup({ imageSrc, title, orientation }: { imageSrc: string; title: string; orientation: 'portrait' | 'landscape' }) {
+function FramedMockup({ imageSrc, title, frameW, frameH }: { imageSrc: string; title: string; frameW: number; frameH: number }) {
   return (
     <div style={{
       width: "100%", height: "100%", minHeight: "460px",
@@ -51,11 +51,15 @@ function FramedMockup({ imageSrc, title, orientation }: { imageSrc: string; titl
     }}>
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "30%", background: "linear-gradient(to bottom, rgba(0,0,0,0.07), transparent)", pointerEvents: "none" }} />
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "20%", background: "linear-gradient(to top, rgba(0,0,0,0.08), transparent)", pointerEvents: "none" }} />
+
       <div style={{
         position: "relative",
-        width: orientation === 'landscape' ? "72%" : "44%",
-        aspectRatio: orientation === 'landscape' ? "3/2" : "2/3",
+        width: `${frameW}px`,
+        height: `${frameH}px`,
+        maxWidth: "80%",
+        maxHeight: "75%",
         boxShadow: "4px 8px 32px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.14)",
+        transition: "all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
       }}>
         <div style={{ position: "absolute", inset: 0, background: "#f0ece4", border: "1px solid rgba(0,0,0,0.08)" }} />
         <div style={{ position: "absolute", inset: "10px", background: "#f7f5f1" }} />
@@ -136,7 +140,7 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
             />
           </div>
           <div style={{ position: "absolute", inset: 0, opacity: slide === 1 ? 1 : 0, transition: "opacity 0.4s ease" }}>
-            <FramedMockup imageSrc={print.image} title={print.title} orientation={orientation} />
+            <FramedMockup imageSrc={print.image} title={print.title} frameW={size.frameW} frameH={size.frameH} />
           </div>
           {slide === 1 && <button onClick={e => { e.stopPropagation(); setSlide(0); }} style={{ ...arrowStyle, left: "12px" }}>←</button>}
           {slide === 0 && <button onClick={e => { e.stopPropagation(); setSlide(1); }} style={{ ...arrowStyle, right: "12px" }}>→</button>}
@@ -239,7 +243,6 @@ export default function PrintsClient({ prints }: { prints: Print[] }) {
 
   return (
     <>
-      {/* Category nav — Malika Favre style */}
       <div style={{ padding: "1rem 2rem", display: "flex", gap: "2rem", borderBottom: "0.5px solid var(--charcoal)", alignItems: "center", overflowX: "auto" }}>
         {CATEGORIES.map(cat => (
           <button key={cat.slug} onClick={() => setActiveCategory(cat.slug)} style={{
@@ -248,15 +251,13 @@ export default function PrintsClient({ prints }: { prints: Print[] }) {
             border: "none", borderBottom: activeCategory === cat.slug ? "1.5px solid #1a1814" : "1.5px solid transparent",
             color: activeCategory === cat.slug ? "#1a1814" : "#9a9189",
             background: "transparent", cursor: "pointer",
-            transition: "all 0.2s", whiteSpace: "nowrap", fontWeight: activeCategory === cat.slug ? 400 : 300,
-          }}>
-            {cat.label}
-          </button>
+            transition: "all 0.2s", whiteSpace: "nowrap",
+            fontWeight: activeCategory === cat.slug ? 400 : 300,
+          }}>{cat.label}</button>
         ))}
       </div>
 
-      {/* 4-column grid */}
-      <section style={{ padding: "0" }}>
+      <section>
         {filtered.length === 0 ? (
           <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "20px", color: "#9a9189", textAlign: "center", padding: "4rem 0" }}>
             No prints in this category yet.
@@ -269,17 +270,16 @@ export default function PrintsClient({ prints }: { prints: Print[] }) {
                 onMouseLeave={() => setHovered(null)}
                 style={{ cursor: "pointer", borderRight: "0.5px solid var(--charcoal)", borderBottom: "0.5px solid var(--charcoal)" }}
               >
-                {/* Image */}
-                <div style={{ position: "relative", overflow: "hidden", background: "#f0ece4" }}>
-                  <Image src={print.image} alt={print.title} width={600} height={400}
+                {/* Uniform square */}
+                <div style={{ position: "relative", paddingBottom: "100%", overflow: "hidden", background: "#f0ece4" }}>
+                  <Image src={print.image} alt={print.title} fill
                     style={{
-                      width: "100%", height: "auto", display: "block",
+                      objectFit: "cover",
                       transition: "transform 0.6s ease",
                       transform: hovered === print.id ? "scale(1.04)" : "scale(1)",
                     }}
                     sizes="25vw"
                   />
-                  {/* Cart button on hover */}
                   <button
                     onClick={e => { e.stopPropagation(); setSelected(print); }}
                     style={{
@@ -292,12 +292,8 @@ export default function PrintsClient({ prints }: { prints: Print[] }) {
                       transition: "opacity 0.2s ease",
                       boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
                     }}
-                  >
-                    +
-                  </button>
+                  >+</button>
                 </div>
-
-                {/* Info */}
                 <div style={{ padding: "0.75rem 1rem 1rem" }}>
                   <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "13px", color: "#1a1814", margin: 0, fontWeight: 300 }}>
                     {print.title}
