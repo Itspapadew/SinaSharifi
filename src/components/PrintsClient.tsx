@@ -41,11 +41,78 @@ const PAPERS = [
   { id: 'hahnemuhle', label: 'Hahnemuhle Fine Art', desc: '310gsm cotton rag · museum grade · 100+ year archival', multiplier: 1.4 },
 ];
 
+function FramedPreview({ imageSrc, title, orientation }: { imageSrc: string; title: string; orientation: 'portrait' | 'landscape' }) {
+  return (
+    <div style={{
+      width: "100%", height: "100%",
+      background: "#e8e0d4",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      position: "relative",
+    }}>
+      {/* Wall texture */}
+      <div style={{
+        position: "absolute", inset: 0,
+        backgroundImage: "repeating-linear-gradient(90deg, rgba(0,0,0,0.015) 0px, transparent 1px, transparent 60px)",
+      }} />
+      {/* Ceiling shadow */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: "20%",
+        background: "linear-gradient(to bottom, rgba(0,0,0,0.08), transparent)",
+        pointerEvents: "none",
+      }} />
+
+      {/* Framed print */}
+      <div style={{
+        position: "relative",
+        width: orientation === 'landscape' ? "70%" : "45%",
+        aspectRatio: orientation === 'landscape' ? "3/2" : "2/3",
+        boxShadow: "4px 8px 32px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.15)",
+      }}>
+        {/* Outer frame */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "#f0ece4",
+          border: "1px solid rgba(0,0,0,0.08)",
+        }} />
+        {/* Mat */}
+        <div style={{
+          position: "absolute", inset: "10px",
+          background: "#f7f5f1",
+        }} />
+        {/* Print */}
+        <div style={{ position: "absolute", inset: "22px", overflow: "hidden" }}>
+          <Image src={imageSrc} alt={title} fill style={{ objectFit: "cover" }} sizes="400px" />
+        </div>
+        {/* Frame highlight */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: "2px",
+          background: "rgba(255,255,255,0.5)",
+          pointerEvents: "none",
+        }} />
+        {/* Frame shadow bottom */}
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0, height: "2px",
+          background: "rgba(0,0,0,0.1)",
+          pointerEvents: "none",
+        }} />
+      </div>
+
+      {/* Floor shadow */}
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, height: "15%",
+        background: "linear-gradient(to top, rgba(0,0,0,0.1), transparent)",
+        pointerEvents: "none",
+      }} />
+    </div>
+  );
+}
+
 function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
   const [sizeIndex, setSizeIndex] = useState(0);
   const [paperId, setPaperId] = useState('matte');
   const [added, setAdded] = useState(false);
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
+  const [slide, setSlide] = useState(0);
   const { addItem } = useCartStore();
 
   const sizes = orientation === 'portrait' ? PORTRAIT_SIZES : LANDSCAPE_SIZES;
@@ -88,24 +155,75 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
           display: "grid", gridTemplateColumns: "1fr 1fr",
         }}
       >
-        <div style={{ position: "relative", minHeight: "420px", background: "#e8e4de" }}>
-          <Image
-            src={print.image} alt={print.title} fill
-            style={{ objectFit: "cover" }}
-            onLoad={e => {
-              const img = e.target as HTMLImageElement;
-              setOrientation(img.naturalWidth > img.naturalHeight ? 'landscape' : 'portrait');
-            }}
-            sizes="450px" priority
-          />
+        {/* Left — image slides */}
+        <div style={{ position: "relative", minHeight: "460px", background: "#e8e4de", overflow: "hidden" }}>
+
+          {/* Slide 0 — original photo */}
+          <div style={{
+            position: "absolute", inset: 0,
+            opacity: slide === 0 ? 1 : 0,
+            transition: "opacity 0.4s ease",
+          }}>
+            <Image
+              src={print.image} alt={print.title} fill
+              style={{ objectFit: "cover" }}
+              onLoad={e => {
+                const img = e.target as HTMLImageElement;
+                setOrientation(img.naturalWidth > img.naturalHeight ? 'landscape' : 'portrait');
+              }}
+              sizes="450px" priority
+            />
+          </div>
+
+          {/* Slide 1 — framed mockup */}
+          <div style={{
+            position: "absolute", inset: 0,
+            opacity: slide === 1 ? 1 : 0,
+            transition: "opacity 0.4s ease",
+          }}>
+            <FramedPreview imageSrc={print.image} title={print.title} orientation={orientation} />
+          </div>
+
+          {/* Slide dots */}
+          <div style={{
+            position: "absolute", bottom: "1rem", left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex", gap: "6px",
+          }}>
+            {[0, 1].map(i => (
+              <button key={i} onClick={e => { e.stopPropagation(); setSlide(i); }} style={{
+                width: "8px", height: "8px", borderRadius: "50%",
+                background: slide === i ? "#f7f5f1" : "rgba(247,245,241,0.4)",
+                border: "none", cursor: "pointer", padding: 0,
+                transition: "all 0.2s",
+              }} />
+            ))}
+          </div>
+
+          {/* Slide labels */}
+          <div style={{
+            position: "absolute", bottom: "1rem", right: "1rem",
+          }}>
+            <span style={{
+              fontFamily: "'Inter', system-ui, sans-serif", fontSize: "9px",
+              letterSpacing: "0.12em", textTransform: "uppercase",
+              color: "rgba(247,245,241,0.7)",
+              background: "rgba(0,0,0,0.3)", padding: "3px 8px", borderRadius: "2px",
+            }}>
+              {slide === 0 ? "Photo" : "Framed"}
+            </span>
+          </div>
+
+          {/* Close */}
           <button onClick={onClose} style={{
             position: "absolute", top: "1rem", right: "1rem",
             background: "rgba(0,0,0,0.5)", border: "none", color: "#fff",
             width: "32px", height: "32px", borderRadius: "50%",
-            cursor: "pointer", fontSize: "18px",
+            cursor: "pointer", fontSize: "18px", zIndex: 10,
           }}>x</button>
         </div>
 
+        {/* Right — details */}
         <div style={{ padding: "2rem 1.75rem", overflowY: "auto", maxHeight: "600px" }}>
           <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 0.5rem" }}>
             {print.category}{print.location && ` · ${print.location}`}
@@ -227,7 +345,7 @@ export default function PrintsClient({ prints }: { prints: Print[] }) {
             No prints in this category yet.
           </p>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "3px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "3px" }}>
             {filtered.map(print => (
               <div
                 key={print.id}
@@ -236,11 +354,12 @@ export default function PrintsClient({ prints }: { prints: Print[] }) {
                 onMouseLeave={() => setHovered(null)}
                 style={{ cursor: "pointer", background: "#e8e4de" }}
               >
-                <div style={{ position: "relative", paddingBottom: "100%", overflow: "hidden" }}>
+                <div style={{ position: "relative", overflow: "hidden" }}>
                   <Image
-                    src={print.image} alt={print.title} fill
+                    src={print.image} alt={print.title}
+                    width={600} height={400}
                     style={{
-                      objectFit: "cover",
+                      width: "100%", height: "auto", display: "block",
                       transition: "transform 0.6s ease",
                       transform: hovered === print.id ? "scale(1.04)" : "scale(1)",
                     }}
