@@ -14,7 +14,7 @@ type Print = {
 };
 
 const CATEGORIES = [
-  { slug: "all", label: "All" },
+  { slug: "all", label: "All editions" },
   { slug: "landscape", label: "Landscape" },
   { slug: "wildlife", label: "Wildlife" },
   { slug: "portrait", label: "Portrait" },
@@ -50,8 +50,7 @@ function FramedMockup({ imageSrc, title, orientation }: { imageSrc: string; titl
       position: "relative",
     }}>
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "30%", background: "linear-gradient(to bottom, rgba(0,0,0,0.07), transparent)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "20%", background: "linear-gradient(to top, rgba(0,0,0,0.1), transparent)", pointerEvents: "none" }} />
-
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "20%", background: "linear-gradient(to top, rgba(0,0,0,0.08), transparent)", pointerEvents: "none" }} />
       <div style={{
         position: "relative",
         width: orientation === 'landscape' ? "72%" : "44%",
@@ -64,7 +63,6 @@ function FramedMockup({ imageSrc, title, orientation }: { imageSrc: string; titl
           <Image src={imageSrc} alt={title} fill style={{ objectFit: "cover" }} sizes="400px" />
         </div>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: "rgba(255,255,255,0.5)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "rgba(0,0,0,0.08)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", bottom: "-14px", left: "10%", right: "10%", height: "14px", background: "rgba(0,0,0,0.1)", filter: "blur(6px)", borderRadius: "50%" }} />
       </div>
     </div>
@@ -122,10 +120,7 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
         borderRadius: "4px", overflow: "hidden",
         display: "grid", gridTemplateColumns: "1fr 1fr",
       }}>
-        {/* Left slides */}
         <div style={{ position: "relative", minHeight: "460px", overflow: "hidden" }}>
-
-          {/* Slide 0 — full photo */}
           <div style={{
             position: "absolute", inset: 0, background: "#1a1814",
             opacity: slide === 0 ? 1 : 0, transition: "opacity 0.4s ease",
@@ -140,24 +135,11 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
               sizes="450px" priority
             />
           </div>
-
-          {/* Slide 1 — framed */}
-          <div style={{
-            position: "absolute", inset: 0,
-            opacity: slide === 1 ? 1 : 0, transition: "opacity 0.4s ease",
-          }}>
+          <div style={{ position: "absolute", inset: 0, opacity: slide === 1 ? 1 : 0, transition: "opacity 0.4s ease" }}>
             <FramedMockup imageSrc={print.image} title={print.title} orientation={orientation} />
           </div>
-
-          {/* Arrows */}
-          {slide === 1 && (
-            <button onClick={e => { e.stopPropagation(); setSlide(0); }} style={{ ...arrowStyle, left: "12px" }}>←</button>
-          )}
-          {slide === 0 && (
-            <button onClick={e => { e.stopPropagation(); setSlide(1); }} style={{ ...arrowStyle, right: "12px" }}>→</button>
-          )}
-
-          {/* Dots */}
+          {slide === 1 && <button onClick={e => { e.stopPropagation(); setSlide(0); }} style={{ ...arrowStyle, left: "12px" }}>←</button>}
+          {slide === 0 && <button onClick={e => { e.stopPropagation(); setSlide(1); }} style={{ ...arrowStyle, right: "12px" }}>→</button>}
           <div style={{ position: "absolute", bottom: "1rem", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "6px", zIndex: 5 }}>
             {[0, 1].map(i => (
               <button key={i} onClick={e => { e.stopPropagation(); setSlide(i); }} style={{
@@ -167,29 +149,14 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
               }} />
             ))}
           </div>
-
-          {/* Label */}
           <div style={{ position: "absolute", bottom: "1rem", right: "1rem", zIndex: 5 }}>
-            <span style={{
-              fontFamily: "'Inter', system-ui, sans-serif", fontSize: "9px",
-              letterSpacing: "0.12em", textTransform: "uppercase",
-              color: "rgba(247,245,241,0.8)",
-              background: "rgba(0,0,0,0.3)", padding: "3px 8px", borderRadius: "2px",
-            }}>
+            <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(247,245,241,0.8)", background: "rgba(0,0,0,0.3)", padding: "3px 8px", borderRadius: "2px" }}>
               {slide === 0 ? "Photo" : "Framed"}
             </span>
           </div>
-
-          {/* Close */}
-          <button onClick={onClose} style={{
-            position: "absolute", top: "1rem", right: "1rem",
-            background: "rgba(0,0,0,0.5)", border: "none", color: "#fff",
-            width: "32px", height: "32px", borderRadius: "50%",
-            cursor: "pointer", fontSize: "18px", zIndex: 10,
-          }}>×</button>
+          <button onClick={onClose} style={{ position: "absolute", top: "1rem", right: "1rem", background: "rgba(0,0,0,0.5)", border: "none", color: "#fff", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontSize: "18px", zIndex: 10 }}>×</button>
         </div>
 
-        {/* Right details */}
         <div style={{ padding: "2rem 1.75rem", overflowY: "auto", maxHeight: "600px" }}>
           <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 0.5rem" }}>
             {print.category}{print.location && ` · ${print.location}`}
@@ -200,7 +167,6 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
           <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "13px", color: "#9a9189", margin: "0 0 1.5rem" }}>
             Limited edition of {print.edition} · Signed and numbered
           </p>
-
           <div style={{ width: "32px", height: "0.5px", background: "var(--charcoal)", margin: "0 0 1.5rem" }} />
 
           <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 10px" }}>Size</p>
@@ -213,9 +179,7 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
                 color: sizeIndex === i ? "#a07850" : "#6b6256",
                 background: sizeIndex === i ? "rgba(160,120,80,0.06)" : "transparent",
                 borderRadius: "2px", cursor: "pointer", transition: "all 0.2s",
-              }}>
-                {s.label}
-              </button>
+              }}>{s.label}</button>
             ))}
           </div>
 
@@ -235,26 +199,17 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.25rem" }}>
-            <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "36px", color: "#a07850", fontWeight: 300, margin: 0 }}>
-              ${price}
-            </p>
+            <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "36px", color: "#a07850", fontWeight: 300, margin: 0 }}>${price}</p>
             <button onClick={handleAdd} style={{
-              flex: 1, padding: "13px",
-              fontFamily: "'Inter', system-ui, sans-serif",
+              flex: 1, padding: "13px", fontFamily: "'Inter', system-ui, sans-serif",
               fontSize: "10px", letterSpacing: "0.16em", textTransform: "uppercase",
               color: "#f7f5f1", background: added ? "#a07850" : "#1a1814",
               border: "none", borderRadius: "2px", cursor: "pointer", transition: "all 0.3s",
-            }}>
-              {added ? "Added to cart" : "Add to cart"}
-            </button>
+            }}>{added ? "Added to cart" : "Add to cart"}</button>
           </div>
 
           <div style={{ paddingTop: "1.25rem", borderTop: "0.5px solid var(--charcoal)" }}>
-            {[
-              ["Printing", "Giclee — museum quality"],
-              ["Fulfillment", "Nearest print lab worldwide"],
-              ["Certificate", "Signed and numbered, included"],
-            ].map(([label, value]) => (
+            {[["Printing", "Giclee — museum quality"], ["Fulfillment", "Nearest print lab worldwide"], ["Certificate", "Signed and numbered, included"]].map(([label, value]) => (
               <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: "0.5px solid var(--charcoal)" }}>
                 <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#9a9189" }}>{label}</span>
                 <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", color: "#6b6256", textAlign: "right", maxWidth: "55%" }}>{value}</span>
@@ -277,75 +232,79 @@ export default function PrintsClient({ prints }: { prints: Print[] }) {
   if (!prints || prints.length === 0) {
     return (
       <div style={{ padding: "6rem 2.5rem", textAlign: "center" }}>
-        <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "24px", color: "#9a9189" }}>
-          No prints available yet. Check back soon.
-        </p>
+        <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "24px", color: "#9a9189" }}>No prints available yet.</p>
       </div>
     );
   }
 
   return (
     <>
-      <div style={{ padding: "1.5rem 2.5rem", display: "flex", gap: "0.25rem", flexWrap: "wrap", borderBottom: "0.5px solid var(--charcoal)", alignItems: "center" }}>
+      {/* Category nav — Malika Favre style */}
+      <div style={{ padding: "1rem 2rem", display: "flex", gap: "2rem", borderBottom: "0.5px solid var(--charcoal)", alignItems: "center", overflowX: "auto" }}>
         {CATEGORIES.map(cat => (
           <button key={cat.slug} onClick={() => setActiveCategory(cat.slug)} style={{
-            fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px",
-            letterSpacing: "0.16em", textTransform: "uppercase",
-            padding: "7px 16px", border: "0.5px solid",
-            borderColor: activeCategory === cat.slug ? "#a07850" : "var(--charcoal)",
-            color: activeCategory === cat.slug ? "#a07850" : "#9a9189",
-            background: activeCategory === cat.slug ? "rgba(160,120,80,0.06)" : "transparent",
-            borderRadius: "2px", cursor: "pointer", transition: "all 0.2s", fontWeight: 300,
+            fontFamily: "'Inter', system-ui, sans-serif", fontSize: "12px",
+            letterSpacing: "0.08em", padding: "0 0 4px",
+            border: "none", borderBottom: activeCategory === cat.slug ? "1.5px solid #1a1814" : "1.5px solid transparent",
+            color: activeCategory === cat.slug ? "#1a1814" : "#9a9189",
+            background: "transparent", cursor: "pointer",
+            transition: "all 0.2s", whiteSpace: "nowrap", fontWeight: activeCategory === cat.slug ? 400 : 300,
           }}>
             {cat.label}
           </button>
         ))}
-        <p style={{ marginLeft: "auto", fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "16px", color: "#9a9189" }}>
-          {filtered.length} {filtered.length === 1 ? "print" : "prints"}
-        </p>
       </div>
 
-      <section style={{ padding: "2rem 2.5rem 4rem", maxWidth: "1400px", margin: "0 auto" }}>
+      {/* 4-column grid */}
+      <section style={{ padding: "0" }}>
         {filtered.length === 0 ? (
           <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "20px", color: "#9a9189", textAlign: "center", padding: "4rem 0" }}>
             No prints in this category yet.
           </p>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "3px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
             {filtered.map(print => (
               <div key={print.id} onClick={() => setSelected(print)}
                 onMouseEnter={() => setHovered(print.id)}
                 onMouseLeave={() => setHovered(null)}
-                style={{ cursor: "pointer", background: "#e8e4de" }}
+                style={{ cursor: "pointer", borderRight: "0.5px solid var(--charcoal)", borderBottom: "0.5px solid var(--charcoal)" }}
               >
-                <div style={{ position: "relative", overflow: "hidden" }}>
+                {/* Image */}
+                <div style={{ position: "relative", overflow: "hidden", background: "#f0ece4" }}>
                   <Image src={print.image} alt={print.title} width={600} height={400}
                     style={{
                       width: "100%", height: "auto", display: "block",
                       transition: "transform 0.6s ease",
                       transform: hovered === print.id ? "scale(1.04)" : "scale(1)",
                     }}
-                    sizes="(max-width: 768px) 50vw, 33vw"
+                    sizes="25vw"
                   />
-                  <div style={{
-                    position: "absolute", inset: 0, background: "rgba(10,10,8,0.4)",
-                    opacity: hovered === print.id ? 1 : 0, transition: "opacity 0.3s ease",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <span style={{
-                      fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px",
-                      letterSpacing: "0.16em", textTransform: "uppercase",
-                      color: "#f7f5f1", border: "0.5px solid rgba(247,245,241,0.6)",
-                      padding: "8px 20px", borderRadius: "2px",
-                    }}>View print</span>
-                  </div>
+                  {/* Cart button on hover */}
+                  <button
+                    onClick={e => { e.stopPropagation(); setSelected(print); }}
+                    style={{
+                      position: "absolute", bottom: "1rem", right: "1rem",
+                      width: "36px", height: "36px", borderRadius: "50%",
+                      background: "#f7f5f1", border: "0.5px solid var(--charcoal)",
+                      cursor: "pointer", fontSize: "18px", color: "#1a1814",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      opacity: hovered === print.id ? 1 : 0,
+                      transition: "opacity 0.2s ease",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                    }}
+                  >
+                    +
+                  </button>
                 </div>
-                <div style={{ padding: "0.75rem 1rem 1rem", background: "#f7f5f1" }}>
-                  <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "17px", fontWeight: 300, color: "#1a1814", margin: 0 }}>{print.title}</p>
-                  {print.location && (
-                    <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "13px", color: "#9a9189", margin: "2px 0 0" }}>{print.location}</p>
-                  )}
-                  <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "20px", color: "#a07850", margin: "8px 0 0" }}>from ${print.basePrice}</p>
+
+                {/* Info */}
+                <div style={{ padding: "0.75rem 1rem 1rem" }}>
+                  <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "13px", color: "#1a1814", margin: 0, fontWeight: 300 }}>
+                    {print.title}
+                  </p>
+                  <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "13px", color: "#9a9189", margin: "4px 0 0" }}>
+                    From ${print.basePrice}
+                  </p>
                 </div>
               </div>
             ))}
