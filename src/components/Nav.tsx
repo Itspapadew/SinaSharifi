@@ -32,26 +32,30 @@ function Dropdown({ label, items, href }: { label: string; items: { label: strin
   }, []);
 
   return (
-    <div ref={ref} style={{ position: "relative" }} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <Link href={href} style={{
-        fontFamily: "'Inter', system-ui, sans-serif",
-        fontSize: "13px", letterSpacing: "0.10em", textTransform: "uppercase",
-        color: "#0a0a0a", fontWeight: 400, textDecoration: "none",
-        display: "flex", alignItems: "center", gap: "5px",
-        transition: "opacity 0.2s", opacity: 1,
-      }}
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          background: "none", border: "none", cursor: "pointer", padding: 0,
+          fontFamily: "'Inter', system-ui, sans-serif",
+          fontSize: "13px", letterSpacing: "0.10em", textTransform: "uppercase",
+          color: "#0a0a0a", fontWeight: 400,
+          display: "flex", alignItems: "center", gap: "5px",
+          transition: "opacity 0.2s",
+        }}
         onMouseEnter={e => (e.currentTarget.style.opacity = "0.45")}
         onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
       >
         {label}
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5"
+          style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
           <path d="M2 3.5L5 6.5L8 3.5"/>
         </svg>
-      </Link>
+      </button>
 
       {open && (
         <div style={{
-          position: "absolute", top: "calc(100% + 16px)", left: "50%", transform: "translateX(-50%)",
+          position: "absolute", top: "calc(100% + 12px)", left: "50%", transform: "translateX(-50%)",
           background: "#fff", border: "0.5px solid rgba(0,0,0,0.1)",
           boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
           minWidth: "180px", zIndex: 200, padding: "8px 0",
@@ -65,8 +69,9 @@ function Dropdown({ label, items, href }: { label: string; items: { label: strin
                 fontSize: "12px", letterSpacing: "0.10em", textTransform: "uppercase",
                 color: i === 0 ? "#a07850" : "#0a0a0a",
                 fontWeight: i === 0 ? 500 : 400,
-                textDecoration: "none", transition: "background 0.15s",
+                textDecoration: "none",
                 borderBottom: i === 0 ? "0.5px solid #e0e0e0" : "none",
+                background: "transparent", transition: "background 0.15s",
               }}
               onMouseEnter={e => (e.currentTarget.style.background = "#f9f9f9")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
@@ -114,7 +119,6 @@ export default function Nav() {
         borderBottom: "0.5px solid rgba(0,0,0,0.08)",
       }}>
 
-        {/* Left — Logo */}
         <Link href="/" style={{
           fontFamily: "'Cormorant Garamond', Georgia, serif",
           fontWeight: 300, fontSize: "28px", letterSpacing: "0.06em",
@@ -123,7 +127,6 @@ export default function Nav() {
           Sina <em style={{ fontStyle: "italic", color: "#a07850" }}>Sharifi</em>
         </Link>
 
-        {/* Center — Nav */}
         <div className="nav-center" style={{ display: "flex", alignItems: "center", gap: "2.5rem" }}>
           <Dropdown label="Portfolio" href="/portfolio" items={PORTFOLIO_CATS} />
           <Dropdown label="Prints" href="/prints" items={PRINTS_CATS} />
@@ -143,7 +146,6 @@ export default function Nav() {
           ))}
         </div>
 
-        {/* Right — Cart + hamburger */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "1rem" }}>
           <button onClick={openCart} style={{
             background: "none", border: "none", cursor: "pointer",
