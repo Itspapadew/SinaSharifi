@@ -26,3 +26,14 @@ export default function Portfolio() {
     </Suspense>
   )
 }
+
+export const metadata = {
+  title: 'Portfolio — Sina Sharifi',
+  description: 'Photography portfolio by Sina Sharifi. Landscape, wildlife, macro and travel photography from the Balkans and Mediterranean.',
+  openGraph: {
+    title: 'Portfolio — Sina Sharifi',
+    description: 'Landscape, wildlife, macro and travel photography from the Balkans and Mediterranean.',
+    url: 'https://sharifisina.com/portfolio',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630 }],
+  },
+}
