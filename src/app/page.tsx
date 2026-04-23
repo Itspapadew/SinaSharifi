@@ -2,6 +2,7 @@ import { client } from '@/sanity/lib/client'
 import { homePhotosQuery } from '@/sanity/lib/queries'
 import HomeGrid from '@/components/HomeGrid'
 import WorldMap from '@/components/WorldMap'
+import EmailSignup from '@/components/EmailSignup'
 
 export const revalidate = 60
 
