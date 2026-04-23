@@ -45,6 +45,7 @@ export default async function Home() {
     <>
       <HomeGrid photos={limited} />
       <WorldMap />
+      <EmailSignup />
     </>
   )
 }
