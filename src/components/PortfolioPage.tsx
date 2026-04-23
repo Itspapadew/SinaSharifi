@@ -87,7 +87,7 @@ export default function PortfolioPage({ photos }: { photos: Photo[] }) {
             No photos in this category yet.
           </p>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "3px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(280px, 45vw), 1fr))", gap: "3px" }}>
             {filtered.map((photo, index) => (
               <div key={photo.id} onClick={() => setLightboxIndex(index)}
                 onMouseEnter={() => setHovered(photo.id)}

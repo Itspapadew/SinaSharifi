@@ -263,7 +263,7 @@ export default function PrintsClient({ prints }: { prints: Print[] }) {
             No prints in this category yet.
           </p>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 45vw), 1fr))" }}>
             {filtered.map(print => (
               <div key={print.id} onClick={() => setSelected(print)}
                 onMouseEnter={() => setHovered(print.id)}

@@ -121,7 +121,7 @@ export default function Nav() {
 
         <Link href="/" style={{
           fontFamily: "'Cormorant Garamond', Georgia, serif",
-          fontWeight: 300, fontSize: "28px", letterSpacing: "0.06em",
+          fontWeight: 300, fontSize: "clamp(18px, 5vw, 28px)", letterSpacing: "0.06em",
           color: "#0a0a0a", textDecoration: "none", lineHeight: 1,
         }}>
           Sina <em style={{ fontStyle: "italic", color: "#a07850" }}>Sharifi</em>
