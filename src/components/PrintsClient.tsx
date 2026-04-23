@@ -45,7 +45,7 @@ function FramedMockup({ imageSrc, title, frameW, frameH }: { imageSrc: string; t
   return (
     <div style={{
       width: "100%", height: "100%", minHeight: "460px",
-      background: "#e8e2d8",
+      background: "#f5f5f5",
       display: "flex", alignItems: "center", justifyContent: "center",
       position: "relative",
     }}>
@@ -61,7 +61,7 @@ function FramedMockup({ imageSrc, title, frameW, frameH }: { imageSrc: string; t
         boxShadow: "4px 8px 32px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.14)",
         transition: "all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
       }}>
-        <div style={{ position: "absolute", inset: 0, background: "#f0ece4", border: "1px solid rgba(0,0,0,0.08)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "#f0f0f0", border: "1px solid rgba(0,0,0,0.08)" }} />
         <div style={{ position: "absolute", inset: "10px", background: "#ffffff" }} />
         <div style={{ position: "absolute", inset: "22px", overflow: "hidden" }}>
           <Image src={imageSrc} alt={title} fill style={{ objectFit: "cover" }} sizes="400px" />
@@ -104,7 +104,7 @@ function PrintModal({ print, onClose }: { print: Print; onClose: () => void }) {
 
   const arrowStyle: React.CSSProperties = {
     position: "absolute", top: "50%", transform: "translateY(-50%)",
-    background: "rgba(247,245,241,0.92)", border: "none",
+    background: "rgba(255,255,255,0.95)", border: "none",
     color: "#1a1814", width: "36px", height: "36px",
     borderRadius: "50%", cursor: "pointer",
     display: "flex", alignItems: "center", justifyContent: "center",
@@ -271,7 +271,7 @@ export default function PrintsClient({ prints }: { prints: Print[] }) {
                 style={{ cursor: "pointer", borderRight: "0.5px solid var(--charcoal)", borderBottom: "0.5px solid var(--charcoal)" }}
               >
                 {/* Uniform square */}
-                <div style={{ position: "relative", paddingBottom: "100%", overflow: "hidden", background: "#f0ece4" }}>
+                <div style={{ position: "relative", paddingBottom: "100%", overflow: "hidden", background: "#f5f5f5" }}>
                   <Image src={print.image} alt={print.title} fill
                     style={{
                       objectFit: "cover",
