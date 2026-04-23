@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { CartDrawer } from '@/components/CartDrawer'
+import CartDrawer from '@/components/CartDrawer'
 import Nav from '@/components/Nav'
 import './globals.css'
 
