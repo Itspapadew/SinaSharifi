@@ -1,7 +1,82 @@
 "use client";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCartStore } from "@/store/cartStore";
+
+const PORTFOLIO_CATS = [
+  { label: "All Work", href: "/portfolio" },
+  { label: "Landscape", href: "/portfolio?category=landscape" },
+  { label: "Wildlife", href: "/portfolio?category=wildlife" },
+  { label: "Portrait", href: "/portfolio?category=portrait" },
+  { label: "Macro", href: "/portfolio?category=macro" },
+];
+
+const PRINTS_CATS = [
+  { label: "All Editions", href: "/prints" },
+  { label: "Landscape", href: "/prints?category=landscape" },
+  { label: "Wildlife", href: "/prints?category=wildlife" },
+  { label: "Portrait", href: "/prints?category=portrait" },
+  { label: "Macro", href: "/prints?category=macro" },
+];
+
+function Dropdown({ label, items, href }: { label: string; items: { label: string; href: string }[]; href: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <Link href={href} style={{
+        fontFamily: "'Inter', system-ui, sans-serif",
+        fontSize: "13px", letterSpacing: "0.10em", textTransform: "uppercase",
+        color: "#0a0a0a", fontWeight: 400, textDecoration: "none",
+        display: "flex", alignItems: "center", gap: "5px",
+        transition: "opacity 0.2s", opacity: 1,
+      }}
+        onMouseEnter={e => (e.currentTarget.style.opacity = "0.45")}
+        onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+      >
+        {label}
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M2 3.5L5 6.5L8 3.5"/>
+        </svg>
+      </Link>
+
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 16px)", left: "50%", transform: "translateX(-50%)",
+          background: "#fff", border: "0.5px solid rgba(0,0,0,0.1)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+          minWidth: "180px", zIndex: 200, padding: "8px 0",
+        }}>
+          {items.map((item, i) => (
+            <Link key={item.label} href={item.href}
+              onClick={() => setOpen(false)}
+              style={{
+                display: "block", padding: "10px 20px",
+                fontFamily: "'Inter', system-ui, sans-serif",
+                fontSize: "12px", letterSpacing: "0.10em", textTransform: "uppercase",
+                color: i === 0 ? "#a07850" : "#0a0a0a",
+                fontWeight: i === 0 ? 500 : 400,
+                textDecoration: "none", transition: "background 0.15s",
+                borderBottom: i === 0 ? "0.5px solid #e0e0e0" : "none",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#f9f9f9")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+            >{item.label}</Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -32,10 +107,8 @@ export default function Nav() {
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
         height: "var(--nav-height)",
-        display: "grid",
-        gridTemplateColumns: "1fr auto 1fr",
-        alignItems: "center",
-        padding: "0 2.5rem",
+        display: "grid", gridTemplateColumns: "1fr auto 1fr",
+        alignItems: "center", padding: "0 2.5rem",
         background: "rgba(255,255,255,0.97)",
         backdropFilter: "blur(12px)",
         borderBottom: "0.5px solid rgba(0,0,0,0.08)",
@@ -50,13 +123,13 @@ export default function Nav() {
           Sina <em style={{ fontStyle: "italic", color: "#a07850" }}>Sharifi</em>
         </Link>
 
-        {/* Center — Nav links */}
+        {/* Center — Nav */}
         <div className="nav-center" style={{ display: "flex", alignItems: "center", gap: "2.5rem" }}>
+          <Dropdown label="Portfolio" href="/portfolio" items={PORTFOLIO_CATS} />
+          <Dropdown label="Prints" href="/prints" items={PRINTS_CATS} />
           {[
-            { label: "Portfolio", href: "/portfolio" },
-            { label: "Prints", href: "/prints" },
             { label: "About", href: "/about" },
-            { label: "Contact", href: "mailto:hello@sharifisina.com" },
+            { label: "Contact", href: "/contact" },
           ].map(item => (
             <Link key={item.label} href={item.href} style={{
               fontFamily: "'Inter', system-ui, sans-serif",
@@ -70,7 +143,7 @@ export default function Nav() {
           ))}
         </div>
 
-        {/* Right — Cart + mobile hamburger */}
+        {/* Right — Cart + hamburger */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "1rem" }}>
           <button onClick={openCart} style={{
             background: "none", border: "none", cursor: "pointer",
@@ -88,10 +161,9 @@ export default function Nav() {
             {cartCount > 0 && (
               <span style={{
                 position: "absolute", top: "-2px", right: "-4px",
-                background: "#0a0a0a", color: "#fff",
-                borderRadius: "50%", width: "16px", height: "16px",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: "9px",
+                background: "#0a0a0a", color: "#fff", borderRadius: "50%",
+                width: "16px", height: "16px", display: "flex",
+                alignItems: "center", justifyContent: "center", fontSize: "9px",
               }}>{cartCount}</span>
             )}
           </button>
@@ -110,7 +182,7 @@ export default function Nav() {
             { label: "Portfolio", href: "/portfolio" },
             { label: "Prints", href: "/prints" },
             { label: "About", href: "/about" },
-            { label: "Contact", href: "mailto:hello@sharifisina.com" },
+            { label: "Contact", href: "/contact" },
           ].map(item => (
             <Link key={item.label} href={item.href} onClick={() => setMenuOpen(false)} style={{
               fontFamily: "'Inter', system-ui, sans-serif", fontSize: "13px",
