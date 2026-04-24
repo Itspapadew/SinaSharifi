@@ -136,7 +136,8 @@ export default function Nav() {
           <div style={{ display: "flex", alignItems: "center", gap: "2.5rem" }}>
             <Dropdown label="Portfolio" href="/portfolio" items={PORTFOLIO_CATS} />
             <Dropdown label="Prints" href="/prints" items={PRINTS_CATS} />
-            {[{ label: "About", href: "/about" }, { label: "Contact", href: "/contact" }].map(item => (
+            {[{ label: "Licensing", href: "/licensing" },
+            { label: "About", href: "/about" }, { label: "Contact", href: "/contact" }].map(item => (
               <Link key={item.label} href={item.href} style={{
                 fontFamily: "'Inter', system-ui, sans-serif",
                 fontSize: "13px", letterSpacing: "0.10em", textTransform: "uppercase",
@@ -218,6 +219,7 @@ export default function Nav() {
           {[
             { label: "Portfolio", href: "/portfolio" },
             { label: "Prints", href: "/prints" },
+            { label: "Licensing", href: "/licensing" },
             { label: "About", href: "/about" },
             { label: "Contact", href: "/contact" },
           ].map(item => (
