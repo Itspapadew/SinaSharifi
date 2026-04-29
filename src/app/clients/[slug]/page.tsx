@@ -24,12 +24,10 @@ const clientGalleryQuery = groq`
   }
 `
 
-export default async function ClientPage({ params }: { params: { slug: string } }) {
-  const gallery = await client.fetch(clientGalleryQuery, { slug: params.slug })
+export default async function ClientPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const gallery = await client.fetch(clientGalleryQuery, { slug })
   if (!gallery) notFound()
-
-  // Check expiry
   if (gallery.expiresAt && new Date(gallery.expiresAt) < new Date()) notFound()
-
   return <ClientGallery gallery={gallery} />
 }

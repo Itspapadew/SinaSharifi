@@ -10,10 +10,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
-    "@aws-sdk/client-s3": "^3.1038.0",
     "@aws-sdk/s3-request-presigner": "^3.1038.0",
     "@portabletext/react": "^6.0.3",
-    "@sanity/client": "^7.21.0",
     "@sanity/icons": "^3.7.4",
     "@sanity/image-url": "^2.1.1",
     "@sanity/ui": "^3.1.14",
@@ -31,12 +29,15 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1038.0",
+    "@sanity/client": "^7.22.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
