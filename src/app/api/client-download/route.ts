@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GetObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import { r2, BUCKET } from '@/lib/r2'
+
+const r2 = new S3Client({
+  region: 'auto',
+  endpoint: 'https://319a615abb303499484a163dccbe5519.r2.cloudflarestorage.com',
+  credentials: {
+    accessKeyId: '569b53344dee6b2305b75d72114fc33e',
+    secretAccessKey: 'b54ff9af86e1b0a24a8743a461269409178bfb41dce5b27e78e3d3f1c391933c',
+  },
+})
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,9 +17,9 @@ export async function POST(req: NextRequest) {
     if (!key) return NextResponse.json({ error: 'No key' }, { status: 400 })
 
     const url = await getSignedUrl(r2, new GetObjectCommand({
-      Bucket: BUCKET,
+      Bucket: 'sina-sharifi-clients',
       Key: key,
-    }), { expiresIn: 3600 }) // 1 hour
+    }), { expiresIn: 3600 })
 
     return NextResponse.json({ url })
   } catch (err: any) {
