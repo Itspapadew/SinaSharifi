@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import Image from "next/image";
 
 type Photo = {
   key: string;
@@ -27,6 +26,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
   const [authed, setAuthed] = useState(false);
   const [error, setError] = useState(false);
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [downloadingAll, setDownloadingAll] = useState(false);
   const [lightbox, setLightbox] = useState<number | null>(null);
 
   const handleAuth = () => {
@@ -51,6 +51,30 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
       alert("Download failed. Please try again.");
     } finally {
       setDownloading(null);
+    }
+  };
+
+  const handleDownloadAll = async () => {
+    setDownloadingAll(true);
+    try {
+      const keys = photos.map(p => p.key);
+      const res = await fetch("/api/client-download-all", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keys, shootName: gallery.shootName }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${gallery.shootName.replace(/\s+/g, "-")}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Download failed. Please try again.");
+    } finally {
+      setDownloadingAll(false);
     }
   };
 
@@ -94,49 +118,39 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
 
       {/* Lightbox */}
       {lightbox !== null && photos[lightbox]?.previewUrl && (
-        <div
-          onClick={() => setLightbox(null)}
-          style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)",
-            zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          {/* Prev */}
+        <div onClick={() => setLightbox(null)} style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)",
+          zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
           <button onClick={e => { e.stopPropagation(); prev(); }} style={{
             position: "absolute", left: "1.5rem", top: "50%", transform: "translateY(-50%)",
-            background: "none", border: "none", color: "#fff", fontSize: "32px", cursor: "pointer", zIndex: 10, opacity: 0.7,
+            background: "none", border: "none", color: "#fff", fontSize: "40px", cursor: "pointer", opacity: 0.7,
           }}>‹</button>
 
-          {/* Image */}
-          <div onClick={e => e.stopPropagation()} style={{ position: "relative", maxWidth: "90vw", maxHeight: "85vh", width: "100%", height: "100%" }}>
-            <img
-              src={photos[lightbox].previewUrl}
-              alt={photos[lightbox].filename || ""}
-              style={{ maxWidth: "90vw", maxHeight: "85vh", objectFit: "contain", display: "block", margin: "0 auto" }}
-            />
-          </div>
+          <img
+            src={photos[lightbox].previewUrl}
+            alt={photos[lightbox].filename || ""}
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: "90vw", maxHeight: "85vh", objectFit: "contain", display: "block" }}
+          />
 
-          {/* Next */}
           <button onClick={e => { e.stopPropagation(); next(); }} style={{
             position: "absolute", right: "1.5rem", top: "50%", transform: "translateY(-50%)",
-            background: "none", border: "none", color: "#fff", fontSize: "32px", cursor: "pointer", zIndex: 10, opacity: 0.7,
+            background: "none", border: "none", color: "#fff", fontSize: "40px", cursor: "pointer", opacity: 0.7,
           }}>›</button>
 
-          {/* Close */}
           <button onClick={() => setLightbox(null)} style={{
             position: "absolute", top: "1rem", right: "1rem",
             background: "rgba(255,255,255,0.1)", border: "none", color: "#fff",
             width: "36px", height: "36px", borderRadius: "50%", cursor: "pointer", fontSize: "18px",
           }}>×</button>
 
-          {/* Counter */}
           <p style={{
             position: "absolute", bottom: "1.5rem", left: "50%", transform: "translateX(-50%)",
             fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px",
             letterSpacing: "0.14em", color: "rgba(255,255,255,0.5)",
           }}>{lightbox + 1} / {photos.length}</p>
 
-          {/* Download from lightbox */}
           {gallery.allowDownload && (
             <button
               onClick={e => { e.stopPropagation(); handleDownload(photos[lightbox].key, photos[lightbox].filename || `photo-${lightbox + 1}.jpg`) }}
@@ -146,20 +160,38 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
                 padding: "10px 20px", fontFamily: "'Inter', system-ui, sans-serif",
                 fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", borderRadius: "2px",
               }}
-            >
-              {downloading === photos[lightbox].key ? "..." : "Download"}
-            </button>
+            >{downloading === photos[lightbox].key ? "..." : "↓ Download"}</button>
           )}
         </div>
       )}
 
       {/* Header */}
-      <div style={{ padding: "4rem 2.5rem 2rem", borderBottom: "0.5px solid #e0e0e0" }}>
-        <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 0.75rem" }}>Private Gallery</p>
-        <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 300, color: "#111", margin: "0 0 0.25rem" }}>{gallery.shootName}</h1>
-        <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "18px", color: "#9a9189", margin: "0 0 1rem" }}>{gallery.clientName}</p>
-        {gallery.message && <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "18px", color: "#3a3530", maxWidth: "600px", lineHeight: 1.7, margin: "0 0 1rem" }}>{gallery.message}</p>}
-        <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", color: "#9a9189", margin: 0 }}>{photos.length} photos — click to view full size</p>
+      <div style={{ padding: "4rem 2.5rem 2rem", borderBottom: "0.5px solid #e0e0e0", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1.5rem" }}>
+        <div>
+          <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 0.75rem" }}>Private Gallery</p>
+          <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 300, color: "#111", margin: "0 0 0.25rem" }}>{gallery.shootName}</h1>
+          <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "18px", color: "#9a9189", margin: "0 0 0.5rem" }}>{gallery.clientName}</p>
+          {gallery.message && <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "18px", color: "#3a3530", maxWidth: "600px", lineHeight: 1.7, margin: "0 0 0.5rem" }}>{gallery.message}</p>}
+          <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", color: "#9a9189", margin: 0 }}>{photos.length} photos — click any photo to view full size</p>
+        </div>
+
+        {gallery.allowDownload && photos.length > 0 && (
+          <button
+            onClick={handleDownloadAll}
+            disabled={downloadingAll}
+            style={{
+              padding: "14px 28px",
+              background: downloadingAll ? "#e0e0e0" : "#a07850",
+              color: downloadingAll ? "#9a9189" : "#fff",
+              border: "none", cursor: downloadingAll ? "wait" : "pointer",
+              fontFamily: "'Inter', system-ui, sans-serif",
+              fontSize: "11px", letterSpacing: "0.16em", textTransform: "uppercase",
+              borderRadius: "2px", whiteSpace: "nowrap",
+            }}
+          >
+            {downloadingAll ? "Preparing ZIP..." : `↓ Download All (${photos.length} photos)`}
+          </button>
+        )}
       </div>
 
       {/* Grid */}
@@ -172,16 +204,9 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
               const filename = photo.filename || `photo-${i + 1}.jpg`;
               return (
                 <div key={photo.key || i}>
-                  <div
-                    onClick={() => setLightbox(i)}
-                    style={{ position: "relative", paddingBottom: "100%", overflow: "hidden", background: "#f5f5f5", cursor: "zoom-in" }}
-                  >
+                  <div onClick={() => setLightbox(i)} style={{ position: "relative", paddingBottom: "100%", overflow: "hidden", background: "#f5f5f5", cursor: "zoom-in" }}>
                     {photo.previewUrl && (
-                      <img
-                        src={photo.previewUrl}
-                        alt={filename}
-                        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-                      />
+                      <img src={photo.previewUrl} alt={filename} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
                     )}
                   </div>
                   {gallery.allowDownload && (
@@ -196,9 +221,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
                         fontFamily: "'Inter', system-ui, sans-serif",
                         fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase",
                       }}
-                    >
-                      {downloading === photo.key ? "Downloading..." : "↓ Download"}
-                    </button>
+                    >{downloading === photo.key ? "Downloading..." : "↓ Download"}</button>
                   )}
                 </div>
               );
