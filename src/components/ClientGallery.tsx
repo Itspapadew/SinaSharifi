@@ -22,12 +22,10 @@ type Gallery = {
   photos: Photo[];
 }
 
-// Justified grid layout calculator
 function buildRows(photos: Photo[], containerWidth: number, targetRowHeight: number) {
   const rows: Photo[][] = []
   let currentRow: Photo[] = []
   let currentWidth = 0
-
   for (const photo of photos) {
     const aspect = (photo.width && photo.height) ? photo.width / photo.height : 1.5
     const scaledWidth = targetRowHeight * aspect
@@ -44,10 +42,11 @@ function buildRows(photos: Photo[], containerWidth: number, targetRowHeight: num
   return rows
 }
 
-function JustifiedGrid({ photos, onPhotoClick, onDownload, allowDownload, isMobile }: {
+function JustifiedGrid({ photos, onPhotoClick, onDownload, onPrint, allowDownload, isMobile }: {
   photos: Photo[]
   onPhotoClick: (index: number) => void
   onDownload: (photo: Photo) => void
+  onPrint: (photo: Photo) => void
   allowDownload: boolean
   isMobile: boolean
 }) {
@@ -68,17 +67,14 @@ function JustifiedGrid({ photos, onPhotoClick, onDownload, allowDownload, isMobi
   const targetHeight = isMobile ? 180 : 280
   const gap = 3
   const rows = buildRows(photos, containerWidth, targetHeight)
-
   let globalIndex = 0
 
   return (
     <div ref={containerRef} style={{ width: "100%" }}>
       {rows.map((row, ri) => {
-        // Calculate actual row height to fill width
         const totalAspect = row.reduce((sum, p) => sum + ((p.width && p.height) ? p.width / p.height : 1.5), 0)
         const gapSpace = gap * (row.length - 1)
         const rowHeight = (containerWidth - gapSpace) / totalAspect
-
         const rowStart = globalIndex
         globalIndex += row.length
 
@@ -93,47 +89,65 @@ function JustifiedGrid({ photos, onPhotoClick, onDownload, allowDownload, isMobi
               return (
                 <div
                   key={photo.key || idx}
-                  style={{ position: "relative", width: `${photoWidth}px`, height: `${rowHeight}px`, flexShrink: 0, overflow: "hidden", cursor: "zoom-in", background: "#f0f0f0" }}
+                  style={{ position: "relative", width: `${photoWidth}px`, flexShrink: 0, background: "#f0f0f0" }}
                   onMouseEnter={() => setHoveredIndex(idx)}
                   onMouseLeave={() => setHoveredIndex(null)}
-                  onClick={() => onPhotoClick(idx)}
                 >
-                  {photo.previewUrl && (
-                    <img
-                      src={photo.previewUrl}
-                      alt={photo.filename || ""}
-                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 0.4s ease", transform: isHovered ? "scale(1.03)" : "scale(1)" }}
-                    />
-                  )}
+                  {/* Photo */}
+                  <div
+                    style={{ width: "100%", height: `${rowHeight}px`, overflow: "hidden", cursor: "zoom-in" }}
+                    onClick={() => onPhotoClick(idx)}
+                  >
+                    {photo.previewUrl && (
+                      <img
+                        src={photo.previewUrl}
+                        alt={photo.filename || ""}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 0.4s ease", transform: isHovered ? "scale(1.03)" : "scale(1)" }}
+                      />
+                    )}
+                    {!isMobile && (
+                      <div style={{
+                        position: "absolute", inset: 0, height: `${rowHeight}px`,
+                        background: "linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 50%)",
+                        opacity: isHovered ? 1 : 0, transition: "opacity 0.3s ease", pointerEvents: "none",
+                      }} />
+                    )}
+                    {/* Download icon */}
+                    {allowDownload && (
+                      <button
+                        onClick={e => { e.stopPropagation(); onDownload(photo) }}
+                        style={{
+                          position: "absolute", top: "8px", right: "8px",
+                          background: "rgba(255,255,255,0.9)", border: "none",
+                          width: "30px", height: "30px", borderRadius: "50%",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          cursor: "pointer", fontSize: "13px",
+                          opacity: isMobile ? 0.85 : (isHovered ? 1 : 0),
+                          transition: "opacity 0.2s",
+                          boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+                        }}
+                        title="Download"
+                      >↓</button>
+                    )}
+                  </div>
 
-                  {/* Hover overlay */}
-                  {!isMobile && (
-                    <div style={{
-                      position: "absolute", inset: 0,
-                      background: "linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 50%)",
-                      opacity: isHovered ? 1 : 0, transition: "opacity 0.3s ease",
-                      pointerEvents: "none",
-                    }} />
-                  )}
-
-                  {/* Download icon */}
-                  {allowDownload && (
-                    <button
-                      onClick={e => { e.stopPropagation(); onDownload(photo) }}
-                      style={{
-                        position: "absolute", bottom: "8px", right: "8px",
-                        background: "rgba(255,255,255,0.9)", border: "none",
-                        width: "32px", height: "32px", borderRadius: "50%",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        cursor: "pointer", opacity: isMobile ? 0.85 : (isHovered ? 1 : 0),
-                        transition: "opacity 0.2s", fontSize: "14px",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                      }}
-                      title="Download"
-                    >
-                      ↓
-                    </button>
-                  )}
+                  {/* Order Print button */}
+                  <button
+                    onClick={() => onPrint(photo)}
+                    style={{
+                      width: "100%", padding: "6px",
+                      background: "transparent", color: "#9a9189",
+                      border: "none", borderTop: "0.5px solid #e0e0e0",
+                      cursor: "pointer",
+                      fontFamily: "'Inter', system-ui, sans-serif",
+                      fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase",
+                      transition: "background 0.2s, color 0.2s",
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "#f9f9f9"; e.currentTarget.style.color = "#a07850" }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#9a9189" }}
+                  >
+                    🖼 Order Print
+                  </button>
                 </div>
               )
             })}
@@ -150,8 +164,8 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
   const [error, setError] = useState(false)
   const [downloading, setDownloading] = useState<string | null>(null)
   const [downloadingAll, setDownloadingAll] = useState(false)
-  const [printPhoto, setPrintPhoto] = useState<Photo | null>(null)
   const [lightbox, setLightbox] = useState<number | null>(null)
+  const [printPhoto, setPrintPhoto] = useState<Photo | null>(null)
   const [isMobile, setIsMobile] = useState(false)
   const touchStartX = useRef<number | null>(null)
 
@@ -162,16 +176,15 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
     return () => window.removeEventListener("resize", handler)
   }, [])
 
-  // Close lightbox on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLightbox(null)
+      if (e.key === "Escape") { setLightbox(null); setPrintPhoto(null) }
       if (e.key === "ArrowLeft") prev()
       if (e.key === "ArrowRight") next()
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  }, [lightbox])
+  }, [])
 
   const photos = gallery.photos || []
   const prev = useCallback(() => setLightbox(i => i !== null ? (i - 1 + photos.length) % photos.length : 0), [photos.length])
@@ -184,14 +197,11 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
 
   const handleDownload = async (photo: Photo) => {
     const key = photo.key
-    const filename = photo.filename || `photo.jpg`
-
+    const filename = photo.filename || "photo.jpg"
     if (isMobile && photo.previewUrl) {
-      // On mobile — open image directly so user can long-press to save to Photos
       window.open(photo.previewUrl, "_blank")
       return
     }
-
     setDownloading(key)
     try {
       const res = await fetch("/api/client-download", {
@@ -235,18 +245,11 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
     }
   }
 
-  // Touch swipe handlers for lightbox
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-  }
-
+  const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX }
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return
     const diff = touchStartX.current - e.changedTouches[0].clientX
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) next()
-      else prev()
-    }
+    if (Math.abs(diff) > 50) { if (diff > 0) next(); else prev() }
     touchStartX.current = null
   }
 
@@ -284,6 +287,15 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
   return (
     <div style={{ paddingTop: "var(--nav-height)", background: "#fff", minHeight: "100vh" }}>
 
+      {/* Print Modal */}
+      {printPhoto && (
+        <ClientPrintModal
+          photo={printPhoto}
+          shootName={gallery.shootName}
+          onClose={() => setPrintPhoto(null)}
+        />
+      )}
+
       {/* Lightbox */}
       {lightbox !== null && photos[lightbox]?.previewUrl && (
         <div
@@ -292,7 +304,6 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          {/* Prev */}
           {!isMobile && (
             <button onClick={e => { e.stopPropagation(); prev() }} style={{
               position: "absolute", left: "1.5rem", top: "50%", transform: "translateY(-50%)",
@@ -309,7 +320,6 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
             style={{ maxWidth: "92vw", maxHeight: "88vh", objectFit: "contain", display: "block", userSelect: "none" }}
           />
 
-          {/* Next */}
           {!isMobile && (
             <button onClick={e => { e.stopPropagation(); next() }} style={{
               position: "absolute", right: "1.5rem", top: "50%", transform: "translateY(-50%)",
@@ -319,7 +329,6 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
             }}>›</button>
           )}
 
-          {/* Close */}
           <button onClick={() => setLightbox(null)} style={{
             position: "absolute", top: "1rem", right: "1rem",
             background: "rgba(255,255,255,0.1)", border: "none", color: "#fff",
@@ -327,30 +336,35 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>×</button>
 
-          {/* Counter */}
           <p style={{
             position: "absolute", bottom: "1.5rem", left: "50%", transform: "translateX(-50%)",
             fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px",
             letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", margin: 0,
           }}>{lightbox + 1} / {photos.length}</p>
 
-          {/* Download from lightbox */}
-          {gallery.allowDownload && (
+          <div style={{ position: "absolute", bottom: "1.2rem", right: "1.5rem", display: "flex", gap: "8px" }}>
+            {gallery.allowDownload && (
+              <button
+                onClick={e => { e.stopPropagation(); handleDownload(photos[lightbox]) }}
+                style={{
+                  background: "rgba(255,255,255,0.15)", color: "#fff", border: "0.5px solid rgba(255,255,255,0.3)",
+                  cursor: "pointer", padding: "10px 18px",
+                  fontFamily: "'Inter', system-ui, sans-serif",
+                  fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", borderRadius: "2px",
+                }}
+              >{isMobile ? "Save to Photos" : "↓ Download"}</button>
+            )}
             <button
-              onClick={e => { e.stopPropagation(); handleDownload(photos[lightbox]) }}
+              onClick={e => { e.stopPropagation(); setLightbox(null); setPrintPhoto(photos[lightbox]) }}
               style={{
-                position: "absolute", bottom: "1.2rem", right: "1.5rem",
-                background: "rgba(255,255,255,0.15)", color: "#fff", border: "0.5px solid rgba(255,255,255,0.3)",
+                background: "#a07850", color: "#fff", border: "none",
                 cursor: "pointer", padding: "10px 18px",
                 fontFamily: "'Inter', system-ui, sans-serif",
                 fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", borderRadius: "2px",
               }}
-            >
-              {isMobile ? "Save to Photos" : (downloading === photos[lightbox].key ? "..." : "↓ Download")}
-            </button>
-          )}
+            >🖼 Order Print</button>
+          </div>
 
-          {/* Mobile swipe hint */}
           {isMobile && (
             <p style={{
               position: "absolute", bottom: "1.5rem", left: "1.5rem",
@@ -369,7 +383,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
           <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "18px", color: "#9a9189", margin: "0 0 0.5rem" }}>{gallery.clientName}</p>
           {gallery.message && <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "17px", color: "#3a3530", maxWidth: "600px", lineHeight: 1.7, margin: "0 0 0.5rem" }}>{gallery.message}</p>}
           <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", color: "#9a9189", margin: 0 }}>
-            {photos.length} photos{isMobile ? " — tap to view · long-press to save" : " — hover to download · click to view"}
+            {photos.length} photos{isMobile ? " — tap to view · long-press to save" : " — click to view · hover for options"}
           </p>
         </div>
 
@@ -401,13 +415,12 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
             photos={photos}
             onPhotoClick={setLightbox}
             onDownload={handleDownload}
+            onPrint={setPrintPhoto}
             allowDownload={gallery.allowDownload}
             isMobile={isMobile}
           />
         )}
       </div>
-
-      {printPhoto && <ClientPrintModal photo={printPhoto} shootName={gallery.shootName} onClose={() => setPrintPhoto(null)} />}
 
       <footer style={{ padding: "2rem 2.5rem", borderTop: "0.5px solid #e0e0e0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "15px", color: "#9a9189", margin: 0 }}>Sina <em>Sharifi</em></p>
