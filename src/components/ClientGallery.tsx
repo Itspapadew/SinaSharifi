@@ -396,33 +396,37 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
           </p>
         </div>
 
-        {gallery.allowDownload && photos.length > 0 && !isMobile && (
-          <button
-            onClick={handleDownloadAll}
-            disabled={downloadingAll}
-            style={{
-              padding: "14px 28px",
-              background: downloadingAll ? "#e0e0e0" : "#a07850",
-              color: downloadingAll ? "#9a9189" : "#fff",
-              border: "none", cursor: downloadingAll ? "wait" : "pointer",
-              fontFamily: "'Inter', system-ui, sans-serif",
-              fontSize: "11px", letterSpacing: "0.16em", textTransform: "uppercase",
-              borderRadius: "2px", whiteSpace: "nowrap",
-            }}
-          >
-            {downloadingAll ? "Preparing ZIP..." : `↓ Download All (${photos.length} photos)`}
-          </button>
-          <button
-            onClick={() => setShowBookModal(true)}
-            style={{
-              padding: "14px 28px",
-              background: "transparent", color: "#111",
-              border: "0.5px solid #111", cursor: "pointer",
-              fontFamily: "Inter, system-ui, sans-serif",
-              fontSize: "11px", letterSpacing: "0.16em", textTransform: "uppercase",
-              borderRadius: "2px", whiteSpace: "nowrap",
-            }}
-          >📚 Order a Book</button>
+        {photos.length > 0 && !isMobile && (
+          <div style={{ display: "flex", gap: "8px" }}>
+            {gallery.allowDownload && (
+              <button
+                onClick={handleDownloadAll}
+                disabled={downloadingAll}
+                style={{
+                  padding: "14px 28px",
+                  background: downloadingAll ? "#e0e0e0" : "#a07850",
+                  color: downloadingAll ? "#9a9189" : "#fff",
+                  border: "none", cursor: downloadingAll ? "wait" : "pointer",
+                  fontFamily: "'Inter', system-ui, sans-serif",
+                  fontSize: "11px", letterSpacing: "0.16em", textTransform: "uppercase",
+                  borderRadius: "2px", whiteSpace: "nowrap",
+                }}
+              >
+                {downloadingAll ? "Preparing ZIP..." : `↓ Download All (${photos.length} photos)`}
+              </button>
+            )}
+            <button
+              onClick={() => setShowBookModal(true)}
+              style={{
+                padding: "14px 28px",
+                background: "transparent", color: "#111",
+                border: "0.5px solid #111", cursor: "pointer",
+                fontFamily: "'Inter', system-ui, sans-serif",
+                fontSize: "11px", letterSpacing: "0.16em", textTransform: "uppercase",
+                borderRadius: "2px", whiteSpace: "nowrap",
+              }}
+            >📚 Order a Book</button>
+          </div>
         )}
       </div>
 
