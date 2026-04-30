@@ -150,6 +150,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
   const [error, setError] = useState(false)
   const [downloading, setDownloading] = useState<string | null>(null)
   const [downloadingAll, setDownloadingAll] = useState(false)
+  const [printPhoto, setPrintPhoto] = useState<Photo | null>(null)
   const [lightbox, setLightbox] = useState<number | null>(null)
   const [isMobile, setIsMobile] = useState(false)
   const touchStartX = useRef<number | null>(null)
