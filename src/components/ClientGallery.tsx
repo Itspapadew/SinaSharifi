@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
+import ClientPrintModal from "@/components/ClientPrintModal";
 
 type Photo = {
   key: string;
@@ -404,6 +405,8 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
           />
         )}
       </div>
+
+      {printPhoto && <ClientPrintModal photo={printPhoto} shootName={gallery.shootName} onClose={() => setPrintPhoto(null)} />}
 
       <footer style={{ padding: "2rem 2.5rem", borderTop: "0.5px solid #e0e0e0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "15px", color: "#9a9189", margin: 0 }}>Sina <em>Sharifi</em></p>
