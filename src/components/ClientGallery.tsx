@@ -131,23 +131,21 @@ function JustifiedGrid({ photos, onPhotoClick, onDownload, onPrint, allowDownloa
                     )}
                   </div>
 
-                  {/* Order Print button */}
+                  {/* Order Print icon */}
                   <button
                     onClick={() => onPrint(photo)}
                     style={{
-                      width: "100%", padding: "6px",
-                      background: "transparent", color: "#9a9189",
-                      border: "none", borderTop: "0.5px solid #e0e0e0",
-                      cursor: "pointer",
-                      fontFamily: "'Inter', system-ui, sans-serif",
-                      fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase",
-                      transition: "background 0.2s, color 0.2s",
+                      position: "absolute", top: "8px", left: "8px",
+                      background: "rgba(255,255,255,0.9)", border: "none",
+                      width: "30px", height: "30px", borderRadius: "50%",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: "pointer", fontSize: "13px",
+                      opacity: isMobile ? 0.85 : (isHovered ? 1 : 0),
+                      transition: "opacity 0.2s",
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "#f9f9f9"; e.currentTarget.style.color = "#a07850" }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#9a9189" }}
-                  >
-                    🖼 Order Print
-                  </button>
+                    title="Order Print"
+                  >🖼</button>
                 </div>
               )
             })}
