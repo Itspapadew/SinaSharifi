@@ -412,6 +412,17 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
           >
             {downloadingAll ? "Preparing ZIP..." : `↓ Download All (${photos.length} photos)`}
           </button>
+          <button
+            onClick={() => setShowBookModal(true)}
+            style={{
+              padding: "14px 28px",
+              background: "transparent", color: "#111",
+              border: "0.5px solid #111", cursor: "pointer",
+              fontFamily: "Inter, system-ui, sans-serif",
+              fontSize: "11px", letterSpacing: "0.16em", textTransform: "uppercase",
+              borderRadius: "2px", whiteSpace: "nowrap",
+            }}
+          >📚 Order a Book</button>
         )}
       </div>
 
