@@ -13,12 +13,13 @@ const r2 = new S3Client({
 
 export async function POST(req: NextRequest) {
   try {
-    const { key } = await req.json()
+    const { key, filename } = await req.json()
     if (!key) return NextResponse.json({ error: 'No key' }, { status: 400 })
 
     const url = await getSignedUrl(r2, new GetObjectCommand({
       Bucket: 'sina-sharifi-clients',
       Key: key,
+      ResponseContentDisposition: `attachment; filename="${filename || key.split('/').pop()}"`,
     }), { expiresIn: 3600 })
 
     return NextResponse.json({ url })

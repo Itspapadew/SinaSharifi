@@ -40,7 +40,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
       const res = await fetch("/api/client-download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key }),
+        body: JSON.stringify({ key, filename }),
       });
       const { url } = await res.json();
       const a = document.createElement("a");

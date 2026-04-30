@@ -1,20 +1,18 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3'
 import { createClient } from '@sanity/client'
 import sharp from 'sharp'
 import fs from 'fs'
 import path from 'path'
 
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
 const GALLERY_SLUG = process.argv[2]
 const PHOTOS_FOLDER = process.argv[3]
 
 if (!GALLERY_SLUG || !PHOTOS_FOLDER) {
   console.error('\nUsage: node scripts/upload-client-gallery.mjs <gallery-slug> <photos-folder>')
-  console.error('Example: node scripts/upload-client-gallery.mjs sarah-wedding-2024 ~/Desktop/Sarah\n')
+  console.error('Example: node scripts/upload-client-gallery.mjs sarah-s-photoshoot ~/Desktop/Sarah\n')
   process.exit(1)
 }
 
-// ─── R2 CLIENT ────────────────────────────────────────────────────────────────
 const r2 = new S3Client({
   region: 'auto',
   endpoint: 'https://319a615abb303499484a163dccbe5519.r2.cloudflarestorage.com',
@@ -26,7 +24,6 @@ const r2 = new S3Client({
 const BUCKET = 'sina-sharifi-clients'
 const PUBLIC_URL = 'https://pub-d16033d48d5d41f4aac820c8b8d8c961.r2.dev'
 
-// ─── SANITY CLIENT ────────────────────────────────────────────────────────────
 const sanity = createClient({
   projectId: 'x99xbcur',
   dataset: 'production',
@@ -35,7 +32,6 @@ const sanity = createClient({
   useCdn: false,
 })
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
 const SUPPORTED = ['.jpg', '.jpeg', '.png', '.webp', '.tiff', '.tif']
 
 function getFiles(folder) {
@@ -46,41 +42,61 @@ function getFiles(folder) {
     .sort()
 }
 
-async function uploadToR2(key, buffer, contentType) {
-  await r2.send(new PutObjectCommand({
-    Bucket: BUCKET,
-    Key: key,
-    Body: buffer,
-    ContentType: contentType,
-  }))
+async function existsInR2(key) {
+  try {
+    await r2.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }))
+    return true
+  } catch {
+    return false
+  }
 }
 
-// ─── MAIN ─────────────────────────────────────────────────────────────────────
+async function uploadToR2(key, buffer, contentType, retries = 3) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      await r2.send(new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+        Body: buffer,
+        ContentType: contentType,
+      }))
+      return
+    } catch (err) {
+      if (attempt === retries) throw err
+      console.log(`  ⚠ Retry ${attempt}/${retries}...`)
+      await new Promise(r => setTimeout(r, 2000 * attempt))
+    }
+  }
+}
+
 async function main() {
-  // 1. Find gallery in Sanity
   const gallery = await sanity.fetch(
-    `*[_type == "clientGallery" && slug.current == $slug][0]{ _id, shootName, clientName }`,
+    `*[_type == "clientGallery" && slug.current == $slug][0]{ _id, shootName, clientName, photos }`,
     { slug: GALLERY_SLUG }
   )
 
   if (!gallery) {
     console.error(`\n❌ No gallery found with slug "${GALLERY_SLUG}"`)
-    console.error('Create it first in the Sanity studio at sharifisina.com/studio\n')
     process.exit(1)
   }
 
   console.log(`\n✅ Found gallery: "${gallery.shootName}" — ${gallery.clientName}`)
 
-  // 2. Get photo files
   const files = getFiles(PHOTOS_FOLDER)
   console.log(`📸 Found ${files.length} photos\n`)
 
-  if (files.length === 0) {
-    console.error('❌ No supported photos found in folder')
-    process.exit(1)
+  // Load existing photos from Sanity to resume
+  const existing = new Map()
+  if (gallery.photos?.length) {
+    for (const p of gallery.photos) {
+      existing.set(p.filename, p)
+    }
+    console.log(`⏩ ${existing.size} already uploaded — skipping those\n`)
   }
 
-  const photos = []
+  const photos = [...existing.values()]
+  let uploaded = 0
+  let skipped = 0
 
   for (let i = 0; i < files.length; i++) {
     const filePath = files[i]
@@ -88,43 +104,86 @@ async function main() {
     const ext = path.extname(filename).toLowerCase()
     const base = path.basename(filename, ext)
 
+    // Skip if already uploaded
+    if (existing.has(filename)) {
+      skipped++
+      continue
+    }
+
     console.log(`[${i + 1}/${files.length}] ${filename}`)
 
-    const buffer = fs.readFileSync(filePath)
-    const meta = await sharp(buffer).metadata()
+    try {
+      const buffer = fs.readFileSync(filePath)
+      const meta = await sharp(buffer).metadata()
 
-    const fullKey = `${GALLERY_SLUG}/full/${base}.jpg`
-    const previewKey = `${GALLERY_SLUG}/preview/${base}.jpg`
+      const fullKey = `${GALLERY_SLUG}/full/${filename}`
+      const previewKey = `${GALLERY_SLUG}/preview/${base}.jpg`
 
-    const fullBuffer = await sharp(buffer).jpeg({ quality: 95 }).toBuffer()
-    const previewBuffer = await sharp(buffer).resize({ width: 1200, withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer()
+      const previewBuffer = await sharp(buffer)
+        .resize({ width: 1200, withoutEnlargement: true })
+        .jpeg({ quality: 80 })
+        .toBuffer()
 
-    process.stdout.write(`  ↑ full-res...`)
-    await uploadToR2(fullKey, fullBuffer, 'image/jpeg')
-    process.stdout.write(` ✓  preview...`)
-    await uploadToR2(previewKey, previewBuffer, 'image/jpeg')
-    console.log(` ✓`)
+      // Check if already in R2 (partial resume)
+      const fullExists = await existsInR2(fullKey)
+      const previewExists = await existsInR2(previewKey)
 
-    photos.push({
-      _key: `photo-${i}-${Date.now()}`,
-      key: fullKey,
-      filename: filename,
-      previewUrl: `${PUBLIC_URL}/${previewKey}`,
-      width: meta.width || 0,
-      height: meta.height || 0,
-      size: buffer.length,
-    })
+      if (!fullExists) {
+        process.stdout.write(`  ↑ full-res...`)
+        await uploadToR2(fullKey, buffer, 'image/jpeg')
+        process.stdout.write(` ✓`)
+      } else {
+        process.stdout.write(`  ✓ full-res (cached)`)
+      }
+
+      if (!previewExists) {
+        process.stdout.write(`  preview...`)
+        await uploadToR2(previewKey, previewBuffer, 'image/jpeg')
+        console.log(` ✓`)
+      } else {
+        console.log(`  ✓ preview (cached)`)
+      }
+
+      photos.push({
+        _key: `photo-${i}-${Date.now()}`,
+        key: fullKey,
+        filename,
+        previewUrl: `${PUBLIC_URL}/${previewKey}`,
+        width: meta.width || 0,
+        height: meta.height || 0,
+        size: buffer.length,
+      })
+
+      uploaded++
+
+      // Save progress to Sanity every 10 photos
+      if (uploaded % 10 === 0) {
+        process.stdout.write(`\n💾 Saving progress (${uploaded} uploaded)...`)
+        await sanity.patch(gallery._id).set({ photos }).commit()
+        console.log(` ✓\n`)
+      }
+
+    } catch (err) {
+      console.error(`\n❌ Failed: ${filename} — ${err.message}`)
+      console.log('💾 Saving progress before exit...')
+      await sanity.patch(gallery._id).set({ photos }).commit()
+      console.log(`✅ Progress saved. Re-run the same command to resume.\n`)
+      process.exit(1)
+    }
   }
 
-  // 3. Save to Sanity
-  console.log(`\n📝 Saving to Sanity...`)
+  // Final save
+  console.log(`\n💾 Final save to Sanity...`)
   await sanity.patch(gallery._id).set({ photos }).commit()
 
-  console.log(`\n✅ Done! ${photos.length} photos uploaded.`)
-  console.log(`🔗 https://sharifisina.com/clients/${GALLERY_SLUG}\n`)
+  console.log(`\n✅ Done!`)
+  console.log(`   Uploaded: ${uploaded}`)
+  console.log(`   Skipped:  ${skipped}`)
+  console.log(`   Total:    ${photos.length}`)
+  console.log(`\n🔗 https://sharifisina.com/clients/${GALLERY_SLUG}\n`)
 }
 
 main().catch(err => {
-  console.error('\n❌ Error:', err.message)
+  console.error('\n❌ Fatal error:', err.message)
   process.exit(1)
 })
