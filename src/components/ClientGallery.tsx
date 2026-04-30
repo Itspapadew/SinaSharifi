@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import ClientPrintModal from "@/components/ClientPrintModal";
+import ClientBookModal from "@/components/ClientBookModal";
 
 type Photo = {
   key: string;
@@ -164,6 +165,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
   const [downloadingAll, setDownloadingAll] = useState(false)
   const [lightbox, setLightbox] = useState<number | null>(null)
   const [printPhoto, setPrintPhoto] = useState<Photo | null>(null)
+  const [showBookModal, setShowBookModal] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const touchStartX = useRef<number | null>(null)
 
@@ -286,6 +288,15 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
     <div style={{ paddingTop: "var(--nav-height)", background: "#fff", minHeight: "100vh" }}>
 
       {/* Print Modal */}
+      {showBookModal && (
+        <ClientBookModal
+          photos={photos}
+          shootName={gallery.shootName}
+          clientName={gallery.clientName}
+          onClose={() => setShowBookModal(false)}
+        />
+      )}
+
       {printPhoto && (
         <ClientPrintModal
           photo={printPhoto}
