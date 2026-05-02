@@ -123,7 +123,7 @@ function JustifiedGrid({ photos, onPhotoClick, onDownload, onPrint, allowDownloa
                           width: "30px", height: "30px", borderRadius: "50%",
                           display: "flex", alignItems: "center", justifyContent: "center",
                           cursor: "pointer", fontSize: "13px",
-                          opacity: isMobile ? 0.85 : (isHovered ? 1 : 0),
+                          opacity: isHovered ? 1 : 0,
                           transition: "opacity 0.2s",
                           boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
                         }}
@@ -141,7 +141,7 @@ function JustifiedGrid({ photos, onPhotoClick, onDownload, onPrint, allowDownloa
                       width: "30px", height: "30px", borderRadius: "50%",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       cursor: "pointer", fontSize: "13px",
-                      opacity: isMobile ? 0.85 : (isHovered ? 1 : 0),
+                      opacity: isHovered ? 1 : 0,
                       transition: "opacity 0.2s",
                       boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
                     }}
@@ -361,7 +361,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
                   fontFamily: "'Inter', system-ui, sans-serif",
                   fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", borderRadius: "2px",
                 }}
-              >{isMobile ? "Save to Photos" : "↓ Download"}</button>
+              >↓ Download</button>
             )}
             <button
               onClick={e => { e.stopPropagation(); setLightbox(null); setPrintPhoto(photos[lightbox]) }}
@@ -392,7 +392,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
           <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "18px", color: "#9a9189", margin: "0 0 0.5rem" }}>{gallery.clientName}</p>
           {gallery.message && <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "17px", color: "#3a3530", maxWidth: "600px", lineHeight: 1.7, margin: "0 0 0.5rem" }}>{gallery.message}</p>}
           <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", color: "#9a9189", margin: 0 }}>
-            {photos.length} photos{isMobile ? " — tap to view · long-press to save" : " — click to view · hover for options"}
+            {photos.length} photos{isMobile ? " — tap to view full size" : " — click to view · hover for options"}
           </p>
         </div>
 
