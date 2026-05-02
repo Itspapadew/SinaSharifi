@@ -71,7 +71,7 @@ function JustifiedGrid({ photos, onPhotoClick, onDownload, onPrint, allowDownloa
   let globalIndex = 0
 
   return (
-    <div ref={containerRef} style={{ width: "100%" }}>
+    <div ref={containerRef} style={{ width: "100%", overflow: "hidden" }}>
       {rows.map((row, ri) => {
         const totalAspect = row.reduce((sum, p) => sum + ((p.width && p.height) ? p.width / p.height : 1.5), 0)
         const gapSpace = gap * (row.length - 1)
@@ -80,7 +80,7 @@ function JustifiedGrid({ photos, onPhotoClick, onDownload, onPrint, allowDownloa
         globalIndex += row.length
 
         return (
-          <div key={ri} style={{ display: "flex", gap: `${gap}px`, marginBottom: `${gap}px` }}>
+          <div key={ri} style={{ display: "flex", gap: `${gap}px`, marginBottom: `${gap}px`, overflow: "hidden" }}>
             {row.map((photo, pi) => {
               const idx = rowStart + pi
               const aspect = (photo.width && photo.height) ? photo.width / photo.height : 1.5
@@ -285,7 +285,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
   }
 
   return (
-    <div style={{ paddingTop: "var(--nav-height)", background: "#fff", minHeight: "100vh", overflowX: "hidden" }}>
+    <div style={{ paddingTop: "var(--nav-height)", background: "#fff", minHeight: "100vh", overflowX: "hidden", maxWidth: "100vw" }}>
 
       {/* Print Modal */}
       {showBookModal && (
@@ -362,7 +362,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
       )}
 
       {/* Header */}
-      <div style={{ padding: "4rem 2.5rem 2rem", borderBottom: "0.5px solid #e0e0e0", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1.5rem" }}>
+      <div style={{ padding: "4rem 1.5rem 2rem", borderBottom: "0.5px solid #e0e0e0", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1.5rem" }}>
         <div>
           <p style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#9a9189", margin: "0 0 0.75rem" }}>Private Gallery</p>
           <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "clamp(28px, 5vw, 52px)", fontWeight: 300, color: "#111", margin: "0 0 0.25rem" }}>{gallery.shootName}</h1>
@@ -408,7 +408,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
       </div>
 
       {/* Gallery */}
-      <div style={{ padding: "2rem 2.5rem 4rem" }}>
+      <div style={{ padding: "2rem 1rem 4rem", overflow: "hidden" }}>
         {!photos.length ? (
           <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "20px", color: "#9a9189", textAlign: "center", padding: "4rem 0" }}>Photos coming soon.</p>
         ) : (
