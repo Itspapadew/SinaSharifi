@@ -350,11 +350,19 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
             display: "flex", alignItems: "center", justifyContent: "space-between",
             background: "rgba(0,0,0,0.5)",
           }}>
-            {/* Counter */}
-            <p style={{
-              fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px",
-              letterSpacing: "0.14em", color: "rgba(255,255,255,0.5)", margin: 0,
-            }}>{lightbox + 1} / {photos.length}</p>
+            {/* Counter + mobile save hint */}
+            <div>
+              <p style={{
+                fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px",
+                letterSpacing: "0.14em", color: "rgba(255,255,255,0.5)", margin: 0,
+              }}>{lightbox + 1} / {photos.length}</p>
+              {isMobile && (
+                <p style={{
+                  fontFamily: "'Inter', system-ui, sans-serif", fontSize: "10px",
+                  color: "rgba(255,255,255,0.3)", margin: "4px 0 0", letterSpacing: "0.08em",
+                }}>Press & hold image to save to Photos</p>
+              )}
+            </div>
 
             {/* Mobile nav buttons */}
             {isMobile && (
