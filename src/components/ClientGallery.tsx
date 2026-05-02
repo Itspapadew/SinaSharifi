@@ -285,7 +285,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
   }
 
   return (
-    <div style={{ paddingTop: "var(--nav-height)", background: "#fff", minHeight: "100vh" }}>
+    <div style={{ paddingTop: "var(--nav-height)", background: "#fff", minHeight: "100vh", overflowX: "hidden" }}>
 
       {/* Print Modal */}
       {showBookModal && (
@@ -350,29 +350,6 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
             fontFamily: "'Inter', system-ui, sans-serif", fontSize: "11px",
             letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", margin: 0,
           }}>{lightbox + 1} / {photos.length}</p>
-
-          <div style={{ position: "absolute", bottom: "1.2rem", right: "1.5rem", display: "flex", gap: "8px" }}>
-            {gallery.allowDownload && (
-              <button
-                onClick={e => { e.stopPropagation(); handleDownload(photos[lightbox]) }}
-                style={{
-                  background: "rgba(255,255,255,0.15)", color: "#fff", border: "0.5px solid rgba(255,255,255,0.3)",
-                  cursor: "pointer", padding: "10px 18px",
-                  fontFamily: "'Inter', system-ui, sans-serif",
-                  fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", borderRadius: "2px",
-                }}
-              >↓ Download</button>
-            )}
-            <button
-              onClick={e => { e.stopPropagation(); setLightbox(null); setPrintPhoto(photos[lightbox]) }}
-              style={{
-                background: "#a07850", color: "#fff", border: "none",
-                cursor: "pointer", padding: "10px 18px",
-                fontFamily: "'Inter', system-ui, sans-serif",
-                fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", borderRadius: "2px",
-              }}
-            >🖼 Order Print</button>
-          </div>
 
           {isMobile && (
             <p style={{
