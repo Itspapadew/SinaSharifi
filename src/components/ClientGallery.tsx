@@ -233,37 +233,41 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
 
   const handleDownloadAll = async () => {
     setDownloadingAll(true)
-    const BATCH_SIZE = 50
-    const keys = photos.map(p => p.key)
-    const batches = []
-    for (let i = 0; i < keys.length; i += BATCH_SIZE) {
-      batches.push(keys.slice(i, i + BATCH_SIZE))
-    }
     try {
-      for (let b = 0; b < batches.length; b++) {
-        const batchNum = b + 1
-        const shootSlug = gallery.shootName.replace(/\s+/g, "-")
-        const filename = batches.length > 1
-          ? `${shootSlug}-Part-${batchNum}-of-${batches.length}.zip`
-          : `${shootSlug}.zip`
-        setDownloadBatch(`${batchNum}/${batches.length}`)
-        const res = await fetch("/api/client-download-all", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ keys: batches[b], shootName: gallery.shootName }),
-        })
-        if (!res.ok) throw new Error("Failed")
-        const blob = await res.blob()
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement("a")
-        a.href = url
-        a.download = filename
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
-        // Small delay between batches
-        if (b < batches.length - 1) await new Promise(r => setTimeout(r, 1500))
+      // Get signed URLs for all photos from R2 directly
+      // Download in small batches of 5 to avoid overwhelming the browser
+      const BATCH_SIZE = 5
+      for (let i = 0; i < photos.length; i += BATCH_SIZE) {
+        const batch = photos.slice(i, i + BATCH_SIZE)
+        setDownloadBatch(`${Math.min(i + BATCH_SIZE, photos.length)}/${photos.length}`)
+        
+        // Get signed URLs for this batch in parallel
+        const urlResults = await Promise.all(
+          batch.map(p => fetch("/api/client-download", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key: p.key, filename: p.filename || p.key.split("/").pop() }),
+          }).then(r => r.json()))
+        )
+        
+        // Trigger downloads
+        for (const result of urlResults) {
+          if (result.url) {
+            const a = document.createElement("a")
+            a.href = result.url
+            a.download = ""
+            a.style.display = "none"
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+            await new Promise(r => setTimeout(r, 300))
+          }
+        }
+        
+        // Pause between batches
+        if (i + BATCH_SIZE < photos.length) {
+          await new Promise(r => setTimeout(r, 1000))
+        }
       }
     } catch {
       alert("Download failed. Please try again.")
