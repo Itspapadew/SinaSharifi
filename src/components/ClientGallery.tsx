@@ -229,51 +229,6 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
     }
   }
 
-  const handleDownloadAll = async () => {
-    setDownloadingAll(true)
-    try {
-      // Get signed URLs for all photos from R2 directly
-      // Download in small batches of 5 to avoid overwhelming the browser
-      const BATCH_SIZE = 5
-      for (let i = 0; i < photos.length; i += BATCH_SIZE) {
-        const batch = photos.slice(i, i + BATCH_SIZE)
-        setDownloadBatch(`${Math.min(i + BATCH_SIZE, photos.length)}/${photos.length}`)
-        
-        // Get signed URLs for this batch in parallel
-        const urlResults = await Promise.all(
-          batch.map(p => fetch("/api/client-download", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ key: p.key, filename: p.filename || p.key.split("/").pop() }),
-          }).then(r => r.json()))
-        )
-        
-        // Trigger downloads
-        for (const result of urlResults) {
-          if (result.url) {
-            const a = document.createElement("a")
-            a.href = result.url
-            a.download = ""
-            a.style.display = "none"
-            document.body.appendChild(a)
-            a.click()
-            document.body.removeChild(a)
-            await new Promise(r => setTimeout(r, 300))
-          }
-        }
-        
-        // Pause between batches
-        if (i + BATCH_SIZE < photos.length) {
-          await new Promise(r => setTimeout(r, 1000))
-        }
-      }
-    } catch {
-      alert("Download failed. Please try again.")
-    } finally {
-      setDownloadingAll(false)
-      setDownloadBatch("")
-    }
-  }
 
   // ─── Password screen ────────────────────────────────────────────────────────
   if (!authed) {
