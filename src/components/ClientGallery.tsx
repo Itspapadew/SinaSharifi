@@ -173,6 +173,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
   const [error, setError] = useState(false)
   const [downloading, setDownloading] = useState<string | null>(null)
   const [downloadingAll, setDownloadingAll] = useState(false)
+  const [downloadBatch, setDownloadBatch] = useState("")
   const [lightbox, setLightbox] = useState<number | null>(null)
   const [printPhoto, setPrintPhoto] = useState<Photo | null>(null)
   const [showBookModal, setShowBookModal] = useState(false)
@@ -232,25 +233,43 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
 
   const handleDownloadAll = async () => {
     setDownloadingAll(true)
+    const BATCH_SIZE = 50
+    const keys = photos.map(p => p.key)
+    const batches = []
+    for (let i = 0; i < keys.length; i += BATCH_SIZE) {
+      batches.push(keys.slice(i, i + BATCH_SIZE))
+    }
     try {
-      const keys = photos.map(p => p.key)
-      const res = await fetch("/api/client-download-all", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ keys, shootName: gallery.shootName }),
-      })
-      if (!res.ok) throw new Error("Failed")
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `${gallery.shootName.replace(/\s+/g, "-")}.zip`
-      a.click()
-      URL.revokeObjectURL(url)
+      for (let b = 0; b < batches.length; b++) {
+        const batchNum = b + 1
+        const shootSlug = gallery.shootName.replace(/\s+/g, "-")
+        const filename = batches.length > 1
+          ? `${shootSlug}-Part-${batchNum}-of-${batches.length}.zip`
+          : `${shootSlug}.zip`
+        setDownloadBatch(`${batchNum}/${batches.length}`)
+        const res = await fetch("/api/client-download-all", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ keys: batches[b], shootName: gallery.shootName }),
+        })
+        if (!res.ok) throw new Error("Failed")
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        // Small delay between batches
+        if (b < batches.length - 1) await new Promise(r => setTimeout(r, 1500))
+      }
     } catch {
       alert("Download failed. Please try again.")
     } finally {
       setDownloadingAll(false)
+      setDownloadBatch("")
     }
   }
 
@@ -431,7 +450,7 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
                 fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase",
                 borderRadius: "2px", whiteSpace: "nowrap",
               }}
-            >{downloadingAll ? "Preparing..." : `↓ Download All`}</button>
+            >{downloadingAll ? (downloadBatch ? `Downloading ${downloadBatch}...` : 'Preparing...') : `↓ Download All`}</button>
           )}
           <button
             onClick={() => setShowBookModal(true)}
