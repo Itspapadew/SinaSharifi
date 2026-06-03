@@ -11,9 +11,13 @@ const r2 = new S3Client({
   },
 })
 
+export const maxDuration = 60
+
 export async function POST(req: NextRequest) {
   try {
     const { keys, shootName } = await req.json()
+    console.log(`ZIP request: ${keys?.length} photos, shoot: ${shootName}`)
+    
     if (!keys || !keys.length) return NextResponse.json({ error: 'No keys' }, { status: 400 })
 
     const zipFilename = `${(shootName || 'gallery').replace(/\s+/g, '-')}.zip`
@@ -21,6 +25,7 @@ export async function POST(req: NextRequest) {
 
     for (const key of keys) {
       try {
+        console.log(`Fetching: ${key}`)
         const cmd = new GetObjectCommand({ Bucket: 'sina-sharifi-clients', Key: key })
         const res = await r2.send(cmd)
         if (res.Body) {
@@ -32,18 +37,22 @@ export async function POST(req: NextRequest) {
             if (done) break
             chunks.push(value)
           }
-          zip.file(filename, Buffer.concat(chunks))
+          const buffer = Buffer.concat(chunks)
+          console.log(`Added: ${filename} (${buffer.length} bytes)`)
+          zip.file(filename, buffer)
         }
-      } catch (e) {
-        console.error(`Failed to fetch ${key}:`, e)
+      } catch (e: any) {
+        console.error(`Failed to fetch ${key}: ${e.message}`)
       }
     }
 
+    console.log('Generating ZIP...')
     const zipBuffer = await zip.generateAsync({
       type: 'nodebuffer',
       compression: 'DEFLATE',
-      compressionOptions: { level: 6 },
+      compressionOptions: { level: 3 },
     })
+    console.log(`ZIP ready: ${zipBuffer.length} bytes`)
 
     return new NextResponse(new Uint8Array(zipBuffer), {
       headers: {
@@ -53,7 +62,7 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (err: any) {
-    console.error('ZIP error:', err)
+    console.error('ZIP error:', err.message, err.stack)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
