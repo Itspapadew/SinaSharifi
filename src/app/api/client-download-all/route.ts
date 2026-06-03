@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3'
-import archiver from 'archiver'
-import { Readable } from 'stream'
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3'
+import JSZip from 'jszip'
 
 const r2 = new S3Client({
   region: 'auto',
@@ -18,58 +17,43 @@ export async function POST(req: NextRequest) {
     if (!keys || !keys.length) return NextResponse.json({ error: 'No keys' }, { status: 400 })
 
     const zipFilename = `${(shootName || 'gallery').replace(/\s+/g, '-')}.zip`
+    const zip = new JSZip()
 
-    // Create a TransformStream to pipe archiver output
-    const { readable, writable } = new TransformStream()
-    const writer = writable.getWriter()
-
-    const archive = archiver('zip', { zlib: { level: 6 } })
-
-    archive.on('data', (chunk: Buffer) => {
-      writer.write(chunk)
-    })
-
-    archive.on('end', () => {
-      writer.close()
-    })
-
-    archive.on('error', (err: Error) => {
-      writer.abort(err)
-    })
-
-    // Add all photos to archive
-    ;(async () => {
-      for (const key of keys) {
-        try {
-          const cmd = new GetObjectCommand({ Bucket: 'sina-sharifi-clients', Key: key })
-          const res = await r2.send(cmd)
-          if (res.Body) {
-            const filename = key.split('/').pop() || 'photo.jpg'
-            const nodeStream = res.Body.transformToWebStream()
-            const reader = nodeStream.getReader()
-            const chunks: Uint8Array[] = []
-            while (true) {
-              const { done, value } = await reader.read()
-              if (done) break
-              chunks.push(value)
-            }
-            const buffer = Buffer.concat(chunks)
-            archive.append(buffer, { name: filename })
+    for (const key of keys) {
+      try {
+        const cmd = new GetObjectCommand({ Bucket: 'sina-sharifi-clients', Key: key })
+        const res = await r2.send(cmd)
+        if (res.Body) {
+          const filename = key.split('/').pop() || 'photo.jpg'
+          const reader = res.Body.transformToWebStream().getReader()
+          const chunks: Uint8Array[] = []
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            chunks.push(value)
           }
-        } catch (e) {
-          console.error(`Failed to fetch ${key}:`, e)
+          zip.file(filename, Buffer.concat(chunks))
         }
+      } catch (e) {
+        console.error(`Failed to fetch ${key}:`, e)
       }
-      archive.finalize()
-    })()
+    }
 
-    return new NextResponse(readable, {
+    const zipBuffer = await zip.generateAsync({
+      type: 'nodebuffer',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 },
+    })
+
+    return new NextResponse(zipBuffer, {
       headers: {
         'Content-Type': 'application/zip',
         'Content-Disposition': `attachment; filename="${zipFilename}"`,
+        'Content-Length': zipBuffer.length.toString(),
       },
     })
   } catch (err: any) {
+    console.error('ZIP error:', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
