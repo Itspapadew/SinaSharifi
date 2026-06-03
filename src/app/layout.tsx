@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import CartDrawer from '@/components/CartDrawer'
 import Nav from '@/components/Nav'
 import './globals.css'
+import GoogleAnalytics from '@/components/GoogleAnalytics'
 
 export const metadata: Metadata = {
   title: 'Sina Sharifi — The world, witnessed.',
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
+        <GoogleAnalytics />
         <Nav />
         <CartDrawer />
         {children}
