@@ -172,8 +172,6 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
   const [authed, setAuthed] = useState(false)
   const [error, setError] = useState(false)
   const [downloading, setDownloading] = useState<string | null>(null)
-  const [downloadingAll, setDownloadingAll] = useState(false)
-  const [downloadBatch, setDownloadBatch] = useState("")
   const [lightbox, setLightbox] = useState<number | null>(null)
   const [printPhoto, setPrintPhoto] = useState<Photo | null>(null)
   const [showBookModal, setShowBookModal] = useState(false)
@@ -441,21 +439,6 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
 
         {/* Action buttons */}
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-          {gallery.allowDownload && !isMobile && (
-            <button
-              onClick={handleDownloadAll}
-              disabled={downloadingAll}
-              style={{
-                padding: "12px 20px",
-                background: downloadingAll ? "#e0e0e0" : "#a07850",
-                color: downloadingAll ? "#9a9189" : "#fff",
-                border: "none", cursor: downloadingAll ? "wait" : "pointer",
-                fontFamily: "'Inter', system-ui, sans-serif",
-                fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase",
-                borderRadius: "2px", whiteSpace: "nowrap",
-              }}
-            >{downloadingAll ? (downloadBatch ? `Downloading ${downloadBatch}...` : 'Preparing...') : `↓ Download All`}</button>
-          )}
           <button
             onClick={() => setShowBookModal(true)}
             style={{
