@@ -206,10 +206,6 @@ export default function ClientGallery({ gallery }: { gallery: Gallery }) {
   const handleDownload = async (photo: Photo) => {
     const key = photo.key
     const filename = photo.filename || "photo.jpg"
-    if (isMobile && photo.previewUrl) {
-      window.open(photo.previewUrl, "_blank")
-      return
-    }
     setDownloading(key)
     try {
       const res = await fetch("/api/client-download", {

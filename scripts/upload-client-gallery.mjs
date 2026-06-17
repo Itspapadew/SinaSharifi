@@ -165,10 +165,13 @@ async function main() {
 
     } catch (err) {
       console.error(`\n❌ Failed: ${filename} — ${err.message}`)
-      console.log('💾 Saving progress before exit...')
+      console.log(`🔄 Retrying ${filename} in 5 seconds...`)
+      await new Promise(r => setTimeout(r, 5000))
+      // Save progress first
       await sanity.patch(gallery._id).set({ photos }).commit()
-      console.log(`✅ Progress saved. Re-run the same command to resume.\n`)
-      process.exit(1)
+      // Retry by decrementing i so the loop re-runs this file
+      i--
+      continue
     }
   }
 
